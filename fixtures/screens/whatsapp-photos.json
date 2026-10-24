@@ -1,0 +1,165 @@
+{
+  "task": "whatsapp-photos",
+  "note": "Hand-made recognized-text fixtures. Each line is [text, x, y, w, h], normalized, top-left origin. Replace or extend with real frames captured during the spike (docs/SPIKE_PLAN.md).",
+  "cases": [
+    {
+      "name": "es: Settings root advances step 1",
+      "phoneLanguage": "es-US",
+      "currentStep": 0,
+      "lines": [
+        ["9:41", 0.08, 0.015, 0.1, 0.02],
+        ["Ajustes", 0.04, 0.09, 0.3, 0.045],
+        ["Buscar", 0.1, 0.16, 0.2, 0.02],
+        ["Modo Avión", 0.15, 0.35, 0.3, 0.02],
+        ["Wi-Fi", 0.15, 0.4, 0.15, 0.02],
+        ["General", 0.15, 0.6, 0.2, 0.02]
+      ],
+      "expect": { "kind": "advance", "matchedStep": 0, "nextStep": 1 }
+    },
+    {
+      "name": "en: Settings root advances step 1",
+      "phoneLanguage": "en-US",
+      "currentStep": 0,
+      "lines": [
+        ["Settings", 0.04, 0.09, 0.32, 0.045],
+        ["Airplane Mode", 0.15, 0.35, 0.33, 0.02],
+        ["General", 0.15, 0.6, 0.2, 0.02]
+      ],
+      "expect": { "kind": "advance", "matchedStep": 0, "nextStep": 1 }
+    },
+    {
+      "name": "es: Privacy screen advances step 2 (back button shows Ajustes)",
+      "phoneLanguage": "es",
+      "currentStep": 1,
+      "lines": [
+        ["Ajustes", 0.07, 0.065, 0.15, 0.022],
+        ["Privacidad y seguridad", 0.27, 0.065, 0.46, 0.022],
+        ["Localización", 0.15, 0.2, 0.3, 0.02],
+        ["Rastreo", 0.15, 0.25, 0.2, 0.02],
+        ["Fotos", 0.15, 0.45, 0.15, 0.02],
+        ["Bluetooth", 0.15, 0.55, 0.2, 0.02]
+      ],
+      "expect": { "kind": "advance", "matchedStep": 1, "nextStep": 2 }
+    },
+    {
+      "name": "es: Photos privacy list advances step 3",
+      "phoneLanguage": "es",
+      "currentStep": 2,
+      "lines": [
+        ["Privacidad y seguridad", 0.03, 0.065, 0.4, 0.022],
+        ["Fotos", 0.43, 0.065, 0.14, 0.022],
+        ["Instagram", 0.15, 0.3, 0.25, 0.02],
+        ["WhatsApp", 0.15, 0.36, 0.25, 0.02]
+      ],
+      "expect": { "kind": "advance", "matchedStep": 2, "nextStep": 3 }
+    },
+    {
+      "name": "es: WhatsApp photo options advances to Full Access step",
+      "phoneLanguage": "es",
+      "currentStep": 3,
+      "lines": [
+        ["Fotos", 0.07, 0.065, 0.12, 0.022],
+        ["WhatsApp", 0.38, 0.065, 0.24, 0.022],
+        ["Ninguno", 0.06, 0.2, 0.2, 0.02],
+        ["Acceso limitado", 0.06, 0.25, 0.35, 0.02],
+        ["Acceso completo", 0.06, 0.3, 0.35, 0.02]
+      ],
+      "expect": { "kind": "advance", "matchedStep": 3, "nextStep": 4 }
+    },
+    {
+      "name": "es: Full Access step asks the user to confirm (check mark is not text)",
+      "phoneLanguage": "es",
+      "currentStep": 4,
+      "lines": [
+        ["Fotos", 0.07, 0.065, 0.12, 0.022],
+        ["WhatsApp", 0.38, 0.065, 0.24, 0.022],
+        ["Acceso limitado", 0.06, 0.25, 0.35, 0.02],
+        ["Acceso completo", 0.06, 0.3, 0.35, 0.02]
+      ],
+      "expect": { "kind": "confirm", "stepIndex": 4 }
+    },
+    {
+      "name": "es: Bluetooth is a known wrong turn",
+      "phoneLanguage": "es",
+      "currentStep": 1,
+      "lines": [
+        ["Ajustes", 0.07, 0.065, 0.15, 0.022],
+        ["Bluetooth", 0.38, 0.065, 0.24, 0.022],
+        ["Bluetooth", 0.06, 0.2, 0.22, 0.02],
+        ["MIS DISPOSITIVOS", 0.06, 0.3, 0.35, 0.018]
+      ],
+      "expect": { "kind": "wrongTurn", "wrongTurnId": "bluetooth" }
+    },
+    {
+      "name": "es: Location Services is a wrong turn even though the back button says Privacidad",
+      "phoneLanguage": "es",
+      "currentStep": 2,
+      "lines": [
+        ["Privacidad y seguridad", 0.03, 0.065, 0.4, 0.022],
+        ["Localización", 0.36, 0.065, 0.28, 0.022],
+        ["Localización", 0.06, 0.2, 0.28, 0.02],
+        ["Rastreo", 0.06, 0.3, 0.2, 0.02]
+      ],
+      "expect": { "kind": "wrongTurn", "wrongTurnId": "location" }
+    },
+    {
+      "name": "en: the Photos app's own settings page is not the privacy list",
+      "phoneLanguage": "en",
+      "currentStep": 2,
+      "lines": [
+        ["Apps", 0.07, 0.065, 0.12, 0.022],
+        ["Photos", 0.42, 0.065, 0.16, 0.022],
+        ["iCloud", 0.06, 0.25, 0.15, 0.02],
+        ["Shared Library", 0.06, 0.3, 0.3, 0.02]
+      ],
+      "expect": { "kind": "none" }
+    },
+    {
+      "name": "en: user went back two screens",
+      "phoneLanguage": "en",
+      "currentStep": 3,
+      "lines": [
+        ["Settings", 0.07, 0.065, 0.17, 0.022],
+        ["Privacy & Security", 0.29, 0.065, 0.42, 0.022],
+        ["Location Services", 0.15, 0.2, 0.38, 0.02],
+        ["Tracking", 0.15, 0.25, 0.2, 0.02]
+      ],
+      "expect": { "kind": "behind", "nextStep": 2 }
+    },
+    {
+      "name": "en: title matches but the list hasn't loaded, so ask",
+      "phoneLanguage": "en",
+      "currentStep": 2,
+      "lines": [
+        ["Privacy & Security", 0.03, 0.065, 0.4, 0.022],
+        ["Photos", 0.42, 0.065, 0.16, 0.022]
+      ],
+      "expect": { "kind": "unsure", "stepIndex": 2 }
+    },
+    {
+      "name": "es: our own card text in the frame does not trigger a step",
+      "phoneLanguage": "es",
+      "currentStep": 2,
+      "lines": [
+        ["Ajustes", 0.07, 0.065, 0.15, 0.022],
+        ["Privacidad y seguridad", 0.27, 0.065, 0.46, 0.022],
+        ["Localización", 0.15, 0.2, 0.3, 0.02],
+        ["Toca «Fotos»", 0.3, 0.8, 0.4, 0.035],
+        ["Paso 3 de 5", 0.35, 0.86, 0.3, 0.02]
+      ],
+      "expect": { "kind": "none" }
+    },
+    {
+      "name": "en: home screen, nothing to do yet",
+      "phoneLanguage": "en",
+      "currentStep": 0,
+      "lines": [
+        ["9:41", 0.08, 0.015, 0.1, 0.02],
+        ["Photos", 0.28, 0.2, 0.14, 0.015],
+        ["Settings", 0.52, 0.2, 0.17, 0.015],
+        ["WhatsApp", 0.76, 0.2, 0.19, 0.015]
+      ],
+      "expect": { "kind": "none" }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+.env
+.DS_Store
+node_modules/
+backend/.audio-cache/
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+.build/
+ios/Buddy/Resources/Secrets.xcconfig
+usage-*.jsonl

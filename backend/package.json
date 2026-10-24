@@ -1,0 +1,15 @@
+{
+  "name": "buddy-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thin backend for Buddy: serves the task library, proxies Claude and Cartesia so no API key lives on the phone.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file-if-exists=../.env src/server.js",
+    "test": "node --test test/*.test.js",
+    "validate": "node scripts/validate-library.js",
+    "cache-audio": "node --env-file-if-exists=../.env scripts/cache-demo-audio.js",
+    "impact": "node scripts/summarize-usage.js"
+  }
+}
