@@ -24,7 +24,10 @@ final class SessionModel {
     let phoneLanguage: String
     private let services: Services
     private let settings: AppSettings
-    let sessionId = UUID().uuidString
+    let sessionId: String
+    /// Live counters from Convex (nil on LocalBackend). Shown as a small "synced" badge.
+    private(set) var live: LiveSession?
+    private var liveTask: Task<Void, Never>?
 
     private(set) var phase: Phase = .confirmTask
     private(set) var stepIndex = 0
@@ -48,9 +51,18 @@ final class SessionModel {
         self.settings = settings
         self.userLanguage = settings.userLanguage
         self.phoneLanguage = AppConfig.phoneLanguage
+        self.sessionId = services.sessionId
         services.usage.enabled = settings.usageLogging
         services.usage.log(UsageEvent(session: sessionId, type: .sessionStart, mode: "helper", taskId: task.id))
         say(confirmLine)
+
+        // Anonymous session on the backend (counters only), then follow it live.
+        let backend = services.backend, id = sessionId, taskId = task.id, locale = phoneLanguage, lang = userLanguage
+        liveTask = Task { [weak self] in
+            try? await backend.startSession(sessionId: id, locale: locale, userLanguage: lang, taskId: taskId)
+            guard let stream = backend.observeSession(sessionId: id) else { return }
+            for await update in stream { self?.live = update }
+        }
 
         services.broadcast.onFrame = { [weak self] frame in Task { @MainActor in self?.handleFrame(frame) } }
         services.pip.onSkipBack = { [weak self] in Task { @MainActor in self?.repeatStep() } }
@@ -84,12 +96,13 @@ final class SessionModel {
         hintLevel = .none
         stepShownAt = Date()
         pending = nil
-        say(instruction)
+        say(instruction, library: libraryLine(.instruction))
         services.usage.log(UsageEvent(session: sessionId, type: .stepShown, taskId: task.id, step: step.id))
     }
 
     private func completeStep(moveTo next: Int) {
         if let step { services.usage.log(UsageEvent(session: sessionId, type: .stepDone, taskId: task.id, step: step.id)) }
+        if next < task.steps.count { sync(.advance(toStep: next, stepId: task.steps[next].id)) }
         stepIndex = next
         if stepIndex >= task.steps.count { return finish() }
         // A quick acknowledgement, nothing more, then the next instruction.
@@ -107,6 +120,8 @@ final class SessionModel {
         let offer = task.finishAction == "tell-family" ? " \(Phrase.offerFamily.text(userLanguage))" : ""
         say(Phrase.finished.text(userLanguage) + offer)
         services.usage.log(UsageEvent(session: sessionId, type: .sessionEnd, taskId: task.id, completed: true))
+        sync(.end(completed: true))
+        services.newSessionId()
         stopSharing()
     }
 
@@ -120,6 +135,8 @@ final class SessionModel {
         timer?.invalidate()
         say(line)
         services.usage.log(UsageEvent(session: sessionId, type: .sessionEnd, taskId: task.id, completed: completed))
+        sync(.end(completed: completed))
+        services.newSessionId()
         stopSharing()
     }
 
@@ -137,7 +154,7 @@ final class SessionModel {
 
     func repeatStep() {
         guard phase == .guiding else { return }
-        say(instruction)
+        say(instruction, library: libraryLine(.instruction))
     }
 
     func togglePause() {
@@ -151,6 +168,7 @@ final class SessionModel {
         guard phase == .guiding || phase == .askScreen, let step else { return }
         lostCount += 1
         services.usage.log(UsageEvent(session: sessionId, type: .lost, taskId: task.id, step: step.id))
+        sync(.lost(stepId: step.id))
         hintLevel = HintEscalation(timing: step.hintTimingSec).levelWhenLost(current: hintLevel)
         let fallback = "\(instruction) \(step.whereToLookText(userLanguage: userLanguage))"
         let screenTitle = services.broadcast.latest?.lines.first(where: { $0.y < 0.15 && $0.h >= 0.018 })?.text
@@ -187,20 +205,10 @@ final class SessionModel {
         }
     }
 
+    /// Re-explains from the library. Claude's only job in the app is choosing the task
+    /// (backend `ai:chooseTask`); every instruction comes from the curated library.
     private func askAgent(event: String, text: String?, screenTitle: String?, fallback: String) {
-        busy = true
-        let body = AgentRequest(userLanguage: userLanguage, phoneLanguage: phoneLanguage,
-                                iosVersion: UIDevice.current.systemVersion, event: event, text: text,
-                                taskId: task.id, stepId: step?.id, screenTitle: screenTitle)
-        Task {
-            defer { busy = false }
-            if let reply = try? await services.backend.agent(body) {
-                say(reply.say)
-                if reply.action == "safety" { paused = true }
-            } else {
-                say(fallback) // offline: the library text is always available
-            }
-        }
+        say(fallback)
     }
 
     // MARK: - Hints ("don't hover")
@@ -219,9 +227,10 @@ final class SessionModel {
         guard level > hintLevel else { return }
         hintLevel = level
         services.usage.log(UsageEvent(session: sessionId, type: .hint, taskId: task.id, step: step.id, level: level.rawValue))
+        sync(.hint(stepId: step.id))
         switch level {
-        case .repeat: say(instruction)
-        case .describe: say(step.whereToLookText(userLanguage: userLanguage))
+        case .repeat: say(instruction, library: libraryLine(.instruction))
+        case .describe: say(step.whereToLookText(userLanguage: userLanguage), library: libraryLine(.whereToLook))
         case .picture: say(Phrase.lookAtPicture.text(userLanguage))
         case .none: break
         }
@@ -276,6 +285,7 @@ final class SessionModel {
                   let hint = step.wrongTurnHint(id, userLanguage: userLanguage, phoneLanguage: phoneLanguage) else { return }
             lastWrongTurnAt[id] = Date()
             services.usage.log(UsageEvent(session: sessionId, type: .wrongTurn, taskId: task.id, step: step.id))
+            sync(.wrongTurn(stepId: step.id))
             say(hint)
         case .unsure:
             guard phase == .guiding, Date().timeIntervalSince(stepShownAt) > 4 else { return }
@@ -291,11 +301,22 @@ final class SessionModel {
 
     func noteFamilyCall() {
         services.usage.log(UsageEvent(session: sessionId, type: .familyCall, taskId: task.id))
+        sync(.familyCall)
     }
 
-    private func say(_ line: String) {
+    /// Counts only: never screen text, transcripts or audio.
+    private func sync(_ event: SessionEvent) {
+        let backend = services.backend, id = sessionId
+        Task { try? await backend.record(event, sessionId: id) }
+    }
+
+    private func libraryLine(_ kind: LineKind) -> Speaker.LibraryLine? {
+        step.map { Speaker.LibraryLine(taskId: task.id, stepId: $0.id, kind: kind, phoneLanguage: phoneLanguage) }
+    }
+
+    private func say(_ line: String, library: Speaker.LibraryLine? = nil) {
         spokenLine = line
-        if settings.outputMode.speaks { services.speaker.say(line, language: userLanguage) }
+        if settings.outputMode.speaks { services.speaker.say(line, language: userLanguage, line: library) }
         updateCard()
     }
 

@@ -7,15 +7,11 @@ enum AppConfig {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Buddy"
     }
 
-    static var backendURL: URL? {
-        guard let s = Bundle.main.object(forInfoDictionaryKey: "BuddyBackendURL") as? String, !s.isEmpty else { return nil }
-        return URL(string: s)
-    }
-
-    /// Not a secret (anything in an app can be extracted); it only keeps casual traffic off a demo server.
-    static var clientToken: String? {
-        let s = Bundle.main.object(forInfoDictionaryKey: "BuddyClientToken") as? String
-        return (s?.isEmpty ?? true) ? nil : s
+    /// Convex deployment URL from Secrets.xcconfig (CONVEX_URL). Empty = run on LocalBackend only.
+    static var convexURL: String? {
+        guard let s = Bundle.main.object(forInfoDictionaryKey: "ConvexDeploymentURL") as? String,
+              s.hasPrefix("https://") else { return nil }
+        return s
     }
 
     static var phoneLanguage: String { Locale.preferredLanguages.first ?? "en" }

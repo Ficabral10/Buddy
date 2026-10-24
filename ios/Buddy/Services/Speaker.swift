@@ -2,8 +2,9 @@ import AVFoundation
 import BuddyCore
 
 /// The mascot's voice. Order of preference:
-///  1. pre-rendered Cartesia clips bundled for the demo (works offline),
-///  2. Cartesia through our backend,
+///  1. pre-rendered Cartesia clips bundled in the app (works offline),
+///  2. Cartesia through Convex: library lines come from cached file storage, other lines are
+///     generated on the fly and never stored,
 ///  3. Apple's on-device voice, so the helper never goes silent.
 @Observable
 final class Speaker: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate {
@@ -13,18 +14,20 @@ final class Speaker: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegat
     private let backend: BackendClient
     private var player: AVAudioPlayer?
     private let synth = AVSpeechSynthesizer()
-    private let manifest: [String: String]
     private var generation = 0
+    /// The anonymous session id, for the backend's per-session rate limits.
+    @ObservationIgnored var sessionId: () -> String = { UUID().uuidString }
+
+    /// A line from the task library, so the backend can serve cached audio for it.
+    struct LibraryLine {
+        let taskId: String
+        let stepId: String
+        let kind: LineKind
+        let phoneLanguage: String
+    }
 
     init(backend: BackendClient) {
         self.backend = backend
-        if let url = Bundle.main.url(forResource: "manifest", withExtension: "json", subdirectory: "DemoAudio"),
-           let data = try? Data(contentsOf: url),
-           let m = try? JSONDecoder().decode([String: String].self, from: data) {
-            manifest = m
-        } else {
-            manifest = [:]
-        }
         super.init()
         synth.delegate = self
     }
@@ -43,21 +46,22 @@ final class Speaker: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegat
         isSpeaking = false
     }
 
-    func say(_ text: String, language: String) {
+    func say(_ text: String, language: String, line: LibraryLine? = nil) {
         stop()
         let gen = generation
         isSpeaking = true
         let lang = TextNorm.baseLanguage(language)
-
-        if let file = manifest["\(lang)|\(text)"],
-           let url = Bundle.main.url(forResource: (file as NSString).deletingPathExtension, withExtension: "mp3", subdirectory: "DemoAudio"),
-           play(contentsOf: url) {
-            lastSource = "cartesia-cached"
-            return
-        }
         Task { @MainActor in
-            if let data = try? await backend.tts(text: text, language: lang), gen == generation, play(data: data) {
-                lastSource = "cartesia"
+            let source: AudioSource?
+            if let line {
+                source = try? await backend.stepAudio(taskId: line.taskId, stepId: line.stepId, kind: line.kind,
+                                                       userLanguage: lang, phoneLanguage: line.phoneLanguage, sessionId: sessionId())
+            } else {
+                source = try? await backend.speech(text: text, language: lang, sessionId: sessionId())
+            }
+            guard gen == generation else { return }
+            if let source, await play(source), gen == generation {
+                lastSource = "\(backend.mode.rawValue)-audio"
                 return
             }
             guard gen == generation else { return }
@@ -66,6 +70,21 @@ final class Speaker: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegat
             u.voice = AVSpeechSynthesisVoice(language: lang == "es" ? "es-MX" : (lang == "zh" ? "zh-CN" : "en-US"))
             u.rate = AVSpeechUtteranceDefaultSpeechRate * 0.9
             synth.speak(u)
+        }
+    }
+
+    @MainActor
+    private func play(_ source: AudioSource) async -> Bool {
+        switch source {
+        case .data(let data):
+            return play(data: data)
+        case .url(let url) where url.isFileURL:
+            return play(contentsOf: url)
+        case .url(let url):
+            // Cached step audio from Convex file storage.
+            guard let (data, response) = try? await URLSession.shared.data(from: url),
+                  (response as? HTTPURLResponse)?.statusCode == 200 else { return false }
+            return play(data: data)
         }
     }
 

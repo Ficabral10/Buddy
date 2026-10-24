@@ -62,6 +62,7 @@ struct HomeView: View {
                 .padding(20)
             }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) { OfflineBadge() }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showSettings = true } label: { Image(systemName: "gearshape").font(.title2) }
                         .accessibilityLabel(Text("Settings"))
@@ -91,18 +92,17 @@ struct HomeView: View {
         thinking = true
         Task {
             defer { thinking = false }
-            let body = AgentRequest(userLanguage: lang, phoneLanguage: AppConfig.phoneLanguage,
-                                    iosVersion: UIDevice.current.systemVersion, event: "request", text: t)
-            guard let r = try? await services.backend.agent(body) else {
-                reply = lang == "es" ? "No me pude conectar. Elige una opción de abajo." : "I couldn't connect. Choose an option below."
+            // Convex (Claude picks from the library) or, silently, the on-phone library matcher.
+            guard let r = try? await services.backend.chooseTask(sessionId: services.sessionId, text: t, userLanguage: lang) else {
+                reply = lang == "es" ? "No te entendí bien. Elige una opción de abajo." : "I didn't catch that. Choose an option below."
                 services.speaker.say(reply, language: lang)
                 return
             }
-            if r.action == "start_task", let id = r.taskId, let task = library.tasks[id] {
-                begin(task, confirmLine: r.say)
+            if let id = r.taskId, let task = library.tasks[id] {
+                begin(task, confirmLine: r.reply)
             } else {
-                reply = r.say
-                if settings.outputMode.speaks { services.speaker.say(r.say, language: lang) }
+                reply = r.reply
+                if settings.outputMode.speaks { services.speaker.say(r.reply, language: lang) }
             }
         }
     }

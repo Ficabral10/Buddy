@@ -11,6 +11,21 @@ Built at Cal Hacks 13.0 for **Spanish-speaking older adults who rely on relative
 > WhatsApp can't see her photos. Lola talks her through turning on photo access in Spanish.
 > She does every tap. Then she sends the message herself.
 
+## How Convex is used
+
+Only what the code actually uses (details in [docs/BACKEND.md](docs/BACKEND.md)):
+
+- **Database tables** for the curated task library, anonymous sessions (counters only), events, cached-audio keys and rate limits. No screen text, transcripts or audio are stored.
+- **Queries**, including a **live query** (`sessions:live`) the iOS app subscribes to through ConvexMobile.
+- **Mutations** for session progress, with server-side input caps and per-session rate limits.
+- **Actions**: `ai:chooseTask` (Claude may only pick a library `taskId`, validated server-side) and `speech:stepAudio` / `speech:speak` (Cartesia Sonic).
+- **File storage** for Cartesia audio of library lines, so each step is generated once and then served by URL.
+- **Environment variables** for the Anthropic and Cartesia keys; nothing secret is in the repo or the app.
+- **A cron job** that deletes sessions and events older than 7 days.
+- **The Swift client** (`ConvexMobile`, main app target only), with a silent fallback to the bundled library when Convex is unreachable.
+
+No login: sessions use an anonymous UUID. Production needs real auth.
+
 ## Two versions
 
 | | Web app (`web/`) | Native iOS app (`ios/`) |

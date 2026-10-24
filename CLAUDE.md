@@ -28,7 +28,8 @@ language. Target users: older adults and non-English speakers. Built for Cal Hac
 
 ## Layout
 - `library/` task flows (source of truth) + `SCHEMA.md`; `fixtures/screens/` detector fixtures.
-- `backend/` Node 20+, no dependencies: `/library`, `/agent` (Claude + guardrails), `/tts` (Cartesia). `src/detector.js` is the reference detector.
+- `convex/` primary backend for the iOS app (schema, sessions, `ai:chooseTask`, `speech:*`, 7-day cron). See docs/BACKEND.md. Tests: `npm run test:convex`.
+- `backend/` Node 20+, no dependencies (serves the web app; dev fallback): `/library`, `/agent` (Claude + guardrails), `/tts` (Cartesia). `src/detector.js` is the reference detector.
 - `ios/` XcodeGen project: `Buddy/` app, `BroadcastExtension/`, `Shared/` (Vision OCR), `Packages/BuddyCore/` (pure Swift logic + tests).
 - `docs/` spike plan, demo script, Devpost, tracks, production path, checklists.
 

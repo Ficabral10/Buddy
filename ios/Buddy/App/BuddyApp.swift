@@ -31,8 +31,13 @@ struct BuddyApp: App {
 /// Long-lived helpers shared by every screen.
 @Observable
 final class Services {
-    let library = AppConfig.loadBundledLibrary()
-    let backend = BackendClient()
+    let library: TaskLibrary?
+    /// Convex first, LocalBackend (bundled library + audio) if it fails. Never blocks the user.
+    let backend: FallbackBackend
+    /// Drives the small "offline" indicator.
+    private(set) var backendMode: BackendMode = .local
+    /// Anonymous id for the current help session; a new one after each session ends.
+    private(set) var sessionId = UUID().uuidString
     let speaker: Speaker
     let listener = Listener()
     let broadcast = BroadcastBridge()
@@ -40,6 +45,18 @@ final class Services {
     let pip = PiPCardController()
 
     init() {
-        speaker = Speaker(backend: backend)
+        let lib = AppConfig.loadBundledLibrary()
+        let local = LocalBackend(library: lib ?? .empty, audioLookup: BundledAudio.shared.url(language:text:))
+        let primary: BackendClient? = AppConfig.convexURL.map { ConvexBackend(deploymentUrl: $0) }
+        let fallback = FallbackBackend(primary: primary, local: local)
+        library = lib
+        backend = fallback
+        speaker = Speaker(backend: fallback)
+        // Everything is initialized; now wire callbacks.
+        backendMode = fallback.mode
+        speaker.sessionId = { [weak self] in self?.sessionId ?? UUID().uuidString }
+        fallback.onModeChange = { [weak self] mode in self?.backendMode = mode }
     }
+
+    func newSessionId() { sessionId = UUID().uuidString }
 }

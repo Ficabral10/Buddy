@@ -26,6 +26,10 @@ settings:
 packages:
   BuddyCore:
     path: Packages/BuddyCore
+  # Convex Swift client (verified: product ConvexMobile, tag 0.8.1, iOS 13+).
+  ConvexMobile:
+    url: https://github.com/get-convex/convex-swift
+    from: 0.8.1
 
 targets:
   Buddy:
@@ -43,6 +47,9 @@ targets:
         buildPhase: resources
     dependencies:
       - package: BuddyCore
+      # Main app only. Never add ConvexMobile to the broadcast extension (tight memory budget).
+      - package: ConvexMobile
+        product: ConvexMobile
       - target: BroadcastExtension
         embed: true
     settings:
@@ -72,8 +79,8 @@ targets:
         NSLocalNetworkUsageDescription: "Connects to the helper's server during the demo."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        BuddyBackendURL: $(BUDDY_BACKEND_URL)
-        BuddyClientToken: $(BUDDY_CLIENT_TOKEN)
+        # Convex deployment URL (from `npx convex dev`, CONVEX_URL in .env.local). Empty = local only.
+        ConvexDeploymentURL: $(CONVEX_URL)
 
   BroadcastExtension:
     type: app-extension

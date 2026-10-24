@@ -8,6 +8,11 @@ public struct LibraryIndex: Codable, Sendable {
     public let libraryVersion: String
     public let languages: [String]
     public let tasks: [String]
+
+    public init(schemaVersion: Int, libraryVersion: String, languages: [String], tasks: [String]) {
+        self.schemaVersion = schemaVersion; self.libraryVersion = libraryVersion
+        self.languages = languages; self.tasks = tasks
+    }
 }
 
 public struct Signature: Codable, Sendable, Equatable {
@@ -63,6 +68,10 @@ public struct TaskLibrary: Sendable {
     public init(index: LibraryIndex, tasks: [String: HelperTask]) {
         self.index = index; self.tasks = tasks
     }
+
+    /// Used only if the bundled library is missing (a build problem).
+    public static let empty = TaskLibrary(
+        index: LibraryIndex(schemaVersion: 1, libraryVersion: "empty", languages: ["en"], tasks: []), tasks: [:])
 
     /// Loads `index.json` and `tasks/<id>.json` from a folder (the app bundles /library).
     public static func load(from folder: URL) throws -> TaskLibrary {
