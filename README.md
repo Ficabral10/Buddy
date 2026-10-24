@@ -11,6 +11,39 @@ Built at Cal Hacks 13.0 for **Spanish-speaking older adults who rely on relative
 > WhatsApp can't see her photos. Lola talks her through turning on photo access in Spanish.
 > She does every tap. Then she sends the message herself.
 
+## Two versions
+
+| | Web app (`web/`) | Native iOS app (`ios/`) |
+|---|---|---|
+| Needs Xcode | No | Yes (macOS 26.6+ for the current Xcode) |
+| Runs on | Safari on the iPhone, added to the Home Screen | Installed from Xcode |
+| Voice, Claude, Cartesia, guided steps, hints, scam pause, WhatsApp finish | Yes | Yes |
+| Screenshot reading on the phone | Yes (Tesseract.js, on device) | Yes (Apple Vision) |
+| Notices the next screen live | No: asks "¿Ya lo hiciste?" when she comes back, or reads a screenshot | Yes (ReplayKit broadcast) |
+| Floating card over Settings | Experimental (Picture in Picture from a canvas) | Yes (PiP), to verify |
+
+Both use the same backend, task library, and step detector.
+
+## Run it on your iPhone (web version, no Xcode)
+
+1. Install Node 20+ (nodejs.org, or `brew install node`).
+2. In Terminal:
+   ```bash
+   cd ~/Downloads/buddy
+   cp .env.example .env && open -e .env    # paste ANTHROPIC_API_KEY, CARTESIA_API_KEY, voice IDs
+   cd backend && npm start                 # leave this running
+   ```
+   Open http://localhost:8787 on the Mac to check it works.
+3. The iPhone needs HTTPS for the microphone. In a second Terminal tab:
+   ```bash
+   npx cloudflared tunnel --url http://localhost:8787
+   ```
+   (or `brew install cloudflared` then `cloudflared tunnel --url http://localhost:8787`). It prints a `https://….trycloudflare.com` address.
+4. Open that address in Safari on the iPhone, then Share → Add to Home Screen. The address changes each time you restart the tunnel.
+5. Speech recognition in Safari uses Apple's dictation: if the mic button does nothing, check Settings → General → Keyboard → Enable Dictation. Typing always works.
+
+Before the demo, run the whole flow once: Cartesia audio is cached on the Mac, so the second run speaks instantly.
+
 ## What it does
 
 1. **Ask.** Say or type the problem in Spanish or English: "WhatsApp no ve mis fotos."
@@ -66,13 +99,13 @@ Listening uses Apple's on-device speech recognition, not Cartesia: the Ink docs 
 - Voice commands work through tap-to-talk and the PiP skip buttons; Lola does not listen all the time.
 - Step detection depends on screen titles; thresholds are first guesses until tested with real frames.
 
-## Setup
+## Setup (native iOS version)
 
 **Backend** (Node 20+):
 ```bash
 cp .env.example .env          # add ANTHROPIC_API_KEY, CARTESIA_API_KEY, voice IDs
 cd backend
-npm test                      # 36 tests: library, agent guardrails, detector fixtures, server
+npm test                      # 37 tests: library, agent guardrails, detector fixtures, server, web serving
 npm start                     # http://localhost:8787
 npm run cache-audio           # optional: pre-render the demo's voice lines into the app
 ```
@@ -94,7 +127,8 @@ No API keys or secrets are in this repo. `.env` and `Secrets.xcconfig` are git-i
 ```
 library/            task flows (source of truth) and schema
 fixtures/screens/   recognized-text fixtures shared by the JS and Swift detector tests
-backend/            Node server, Claude agent, Cartesia TTS, scripts, tests
+backend/            Node server (also serves web/), Claude agent, Cartesia TTS, scripts, tests
+web/                no-Xcode web app: same flow in Safari
 ios/                XcodeGen project: app, broadcast extension, BuddyCore package
 docs/               spike plan, demo script, Devpost draft, tracks, production path, checklists
 ```

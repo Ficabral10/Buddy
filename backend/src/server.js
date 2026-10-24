@@ -5,6 +5,7 @@
 //   POST /tts                -> Cartesia audio (mp3) for one sentence
 // Keys come from environment variables only. See ../.env.example.
 import http from 'node:http';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadLibrary } from './library.js';
@@ -47,6 +48,30 @@ function readJson(req) {
   });
 }
 
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+
+/** Serves the web app from /web and the shared detector modules from src/. No directory escapes. */
+async function serveStatic(pathname, res, webDir, srcDir) {
+  let file = null;
+  if (pathname === '/' || pathname === '/index.html') file = path.join(webDir, 'index.html');
+  else if (pathname === '/lib/detector.js' || pathname === '/lib/text.js') file = path.join(srcDir, path.basename(pathname));
+  else if (pathname.startsWith('/app/')) {
+    const candidate = path.resolve(webDir, `.${pathname.slice(4)}`);
+    if (candidate.startsWith(webDir + path.sep)) file = candidate;
+  }
+  if (!file) return false;
+  try {
+    const body = await readFile(file);
+    res.writeHead(200, { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
+    res.end(body);
+  } catch {
+    res.writeHead(404, { 'content-type': 'text/plain' });
+    res.end('not found');
+  }
+  return true;
+}
+
 const send = (res, status, body, type = 'application/json') => {
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
   res.end(type === 'application/json' ? JSON.stringify(body) : body);
@@ -59,14 +84,16 @@ export function createServer({ env = process.env, library = loadLibrary(), claud
   if (errors.length) throw new Error(`Task library invalid:\n${errors.join('\n')}`);
 
   const here = path.dirname(fileURLToPath(import.meta.url));
+  const webDir = path.resolve(here, '../../web');
   const synthesize = tts ?? createTts({ apiKey: env.CARTESIA_API_KEY, env, cacheDir: path.join(here, '../.audio-cache') });
-  const allow = createRateLimiter({ perMinute: Number(env.RATE_LIMIT_PER_MINUTE || 60) });
+  const allow = createRateLimiter({ perMinute: Number(env.RATE_LIMIT_PER_MINUTE || 120) });
   const clientToken = env.BUDDY_CLIENT_TOKEN || null;
 
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');
       if (url.pathname === '/health') return send(res, 200, { ok: true, libraryVersion: library.libraryVersion });
+      if (req.method === 'GET' && (await serveStatic(url.pathname, res, webDir, here))) return;
 
       // A shared token is not real authentication; it only keeps casual traffic off a demo server.
       if (clientToken && req.headers['x-buddy-client'] !== clientToken) return send(res, 401, { error: 'unauthorized' });
@@ -117,7 +144,8 @@ export function createServer({ env = process.env, library = loadLibrary(), claud
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 8787);
   createServer().listen(port, () => {
-    console.log(`Buddy backend on http://localhost:${port}`);
+    console.log(`Lola is running: open http://localhost:${port} on this computer.`);
+    console.log('For your iPhone, run an HTTPS tunnel (see README: "Run it on your iPhone").');
     if (!process.env.ANTHROPIC_API_KEY) console.log('ANTHROPIC_API_KEY missing: /agent uses library-only replies.');
     if (!process.env.CARTESIA_API_KEY) console.log('CARTESIA_API_KEY missing: /tts returns 503; the app falls back to on-device speech.');
   });

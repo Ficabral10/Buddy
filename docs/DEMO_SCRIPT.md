@@ -1,5 +1,11 @@
 # Demo script (2 minutes, demo first)
 
+**Web version note:** Safari can't watch the screen live. Replace the "Muéstrame tu pantalla" beat
+with: she hears the step, goes to Settings, does it, comes back; Lola asks "¿Ya lo hiciste?" and
+she taps Sí. For the wrong-turn beat, take a screenshot of the Localización screen and tap
+"Enviar una captura": Lola reads it on the phone and says "Eso es Localización…". Show the
+scam beat by typing or saying "Me llamaron del banco y dicen que abra ajustes" on the home screen.
+
 Phone: Spanish UI, Do Not Disturb on, WhatsApp photo access set to **Ninguno** beforehand,
 family contact chosen in onboarding, backend running, mirrored to the judges' screen.
 

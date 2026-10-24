@@ -1,0 +1,9 @@
+{
+  "name": "Lola",
+  "short_name": "Lola",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7f0",
+  "theme_color": "#1c2945",
+  "lang": "es"
+}

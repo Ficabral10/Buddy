@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lola">
+  <meta name="theme-color" content="#1c2945">
+  <title>Lola</title>
+  <link rel="stylesheet" href="/app/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2246%22 fill=%22%23f9b85c%22/%3E%3C/svg%3E">
+  <link rel="manifest" href="/app/manifest.json">
+</head>
+<body>
+  <main id="app" aria-live="polite"></main>
+  <!-- Hidden pieces used by the experimental floating card (Picture in Picture). -->
+  <canvas id="card-canvas" width="720" height="420" hidden></canvas>
+  <video id="card-video" muted playsinline autopictureinpicture
+         style="position:fixed;right:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none"></video>
+  <script type="module" src="/app/app.js"></script>
+</body>
+</html>

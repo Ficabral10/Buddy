@@ -77,3 +77,15 @@ test('usage summary counts sessions and never invents data', () => {
   assert.equal(s.baseline, undefined); // unfinished sessions are ignored
   assert.match(renderMarkdown(s), /\| helper \| 2 \| 2\/2 \| 1\/2 \| 75 \|/);
 });
+
+test('serves the web app and shared modules, and blocks path escapes', async () => {
+  await withServer({ env: {} }, async (url) => {
+    const index = await fetch(`${url}/`);
+    assert.equal(index.status, 200);
+    assert.match(await index.text(), /<main id="app"/);
+    assert.match((await fetch(`${url}/app/app.js`)).headers.get('content-type'), /javascript/);
+    assert.match(await (await fetch(`${url}/lib/detector.js`)).text(), /export function detect/);
+    assert.equal((await fetch(`${url}/app/../../.env.example`)).status, 404);
+    assert.equal((await fetch(`${url}/app/%2e%2e/%2e%2e/.env.example`)).status, 404);
+  });
+});
