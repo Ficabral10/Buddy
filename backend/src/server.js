@@ -12,6 +12,8 @@ import { loadLibrary } from './library.js';
 import { validateLibrary } from './validate.js';
 import { runAgent, DEFAULT_MODEL } from './agent.js';
 import { createTts } from './tts.js';
+import { checkScam } from './scam.js';
+import { screenHelp } from './vision.js';
 
 const MAX_BODY = 16 * 1024;
 const LANGS = new Set(['en', 'es', 'zh']);
@@ -31,13 +33,13 @@ export function createRateLimiter({ perMinute = 60, now = () => Date.now() } = {
   };
 }
 
-function readJson(req) {
+function readJson(req, maxBody = MAX_BODY) {
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks = [];
     req.on('data', (c) => {
       size += c.length;
-      if (size > MAX_BODY) reject(Object.assign(new Error('Body too large'), { status: 413 }));
+      if (size > maxBody) reject(Object.assign(new Error('Body too large'), { status: 413 }));
       else chunks.push(c);
     });
     req.on('end', () => {
@@ -121,6 +123,29 @@ export function createServer({ env = process.env, library = loadLibrary(), claud
           log,
         });
         log(`agent event=${body.event} action=${reply.action} source=${reply.source}${reply.guardrail ? ` guardrail=${reply.guardrail}` : ''}`);
+        return send(res, 200, reply);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/scam') {
+        const b = await readJson(req);
+        const reply = await checkScam(
+          { text: str(b.text, 2000), userLanguage: LANGS.has(b.userLanguage) ? b.userLanguage : 'en' },
+          { apiKey: env.ANTHROPIC_API_KEY, model: env.CLAUDE_MODEL || DEFAULT_MODEL, ...(claude ? { claude } : {}), log },
+        );
+        log(`scam risk=${reply.risk} source=${reply.source}`); // never log the message itself
+        return send(res, 200, reply);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/vision') {
+        const b = await readJson(req, 2 * 1024 * 1024);
+        const reply = await screenHelp({
+          image: typeof b.image === 'string' ? b.image : '',
+          userLanguage: LANGS.has(b.userLanguage) ? b.userLanguage : 'en',
+          phoneLanguage: str(b.phoneLanguage, 20) ?? 'en',
+          taskId: str(b.taskId, 80),
+          stepId: str(b.stepId, 80),
+        }, { library, apiKey: env.ANTHROPIC_API_KEY, model: env.CLAUDE_MODEL || DEFAULT_MODEL, ...(claude ? { claude } : {}), log });
+        log(`vision source=${reply.source}${reply.guardrail ? ` guardrail=${reply.guardrail}` : ''}`); // image is not stored
         return send(res, 200, reply);
       }
 

@@ -158,3 +158,28 @@ details summary { min-height: 44px; display: flex; align-items: center; cursor: 
 .list { display: flex; flex-direction: column; gap: 10px; }
 .privacy { font-size: 17px; color: var(--muted); }
 .icon { width: 26px; height: 26px; flex: none; }
+
+/* Screenshot with the ring drawn on it */
+.shot { width: 100%; border-radius: 12px; display: block; background: #fff; }
+.look { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.look p { font-size: 18px; }
+
+/* Scam check */
+.scam-entry {
+  flex-direction: column; align-items: flex-start; gap: 4px; text-align: left;
+  border: 3px solid var(--warn-line); background: var(--warn-bg); min-height: 84px;
+}
+.scam-entry .big { font-size: 23px; font-weight: 700; }
+.scam-entry span:not(.big) { font-size: 18px; font-weight: 500; color: var(--muted); }
+textarea {
+  font: inherit; width: 100%; padding: 12px 14px; border-radius: 14px;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink); resize: vertical;
+}
+.verdict { border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 12px; border: 3px solid; }
+.verdict .headline { font-size: 26px; font-weight: 750; line-height: 1.2; }
+.verdict .advice { font-weight: 650; }
+.risk-high { background: #fde8e8; border-color: #b42318; color: #4a0d0d; }
+.risk-medium { background: #fff4e0; border-color: #b45309; color: #4a2a05; }
+.risk-low { background: #e7f6ec; border-color: #1d7a46; color: #0c3a20; }
+.chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { font-size: 16px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,0.08); }

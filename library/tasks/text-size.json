@@ -1,0 +1,203 @@
+{
+  "id": "text-size",
+  "taskVersion": 1,
+  "title": {
+    "en": "Make the letters bigger",
+    "es": "Hacer las letras más grandes"
+  },
+  "description": "The user finds the text on the phone too small to read. Guide them to Settings > Display & Brightness > Text Size and drag the slider.",
+  "exampleRequests": {
+    "en": [
+      "the letters are too small",
+      "I can't read my phone",
+      "make the text bigger"
+    ],
+    "es": [
+      "las letras están muy chiquitas",
+      "no puedo leer mi teléfono",
+      "quiero letras más grandes"
+    ]
+  },
+  "iosVersions": {
+    "min": "17.0",
+    "max": "27.99"
+  },
+  "labelsVerified": {
+    "en": false,
+    "es": false,
+    "note": "Labels come from planning notes, not a device. Walk the flow on the demo iPhone in each phone language before relying on it."
+  },
+  "finishAction": "none",
+  "steps": [
+    {
+      "id": "open-settings",
+      "label": {
+        "en": "Settings",
+        "es": "Ajustes"
+      },
+      "instruction": {
+        "en": "Go to your home screen and open {label}.",
+        "es": "Ve a la pantalla de inicio y abre {label}."
+      },
+      "whereToLook": {
+        "en": "It's the gray icon with a gear.",
+        "es": "Es el ícono gris con un engranaje."
+      },
+      "referenceImage": "ref-settings-icon",
+      "arrival": {
+        "title": {
+          "en": [
+            "Settings"
+          ],
+          "es": [
+            "Ajustes"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Airplane Mode",
+            "General",
+            "Apps"
+          ],
+          "es": [
+            "Modo Avión",
+            "General",
+            "Apps"
+          ]
+        }
+      },
+      "wrongTurns": [],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "display",
+      "label": {
+        "en": "Display & Brightness",
+        "es": "Pantalla y brillo"
+      },
+      "instruction": {
+        "en": "Tap {label}.",
+        "es": "Toca {label}."
+      },
+      "whereToLook": {
+        "en": "It has a blue icon with a sun. Scroll down a little if you don't see it.",
+        "es": "Tiene un ícono azul con un sol. Baja un poco si no lo ves."
+      },
+      "referenceImage": "ref-display-row",
+      "arrival": {
+        "title": {
+          "en": [
+            "Display & Brightness"
+          ],
+          "es": [
+            "Pantalla y brillo"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Text Size",
+            "Bold Text"
+          ],
+          "es": [
+            "Tamaño del texto",
+            "Texto en negrita"
+          ]
+        }
+      },
+      "wrongTurns": [
+        {
+          "id": "general",
+          "title": {
+            "en": [
+              "General"
+            ],
+            "es": [
+              "General"
+            ]
+          },
+          "hint": {
+            "en": "That's General. Tap the back arrow at the top left, then look for {label}.",
+            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+          }
+        }
+      ],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "text-size-row",
+      "label": {
+        "en": "Text Size",
+        "es": "Tamaño del texto"
+      },
+      "instruction": {
+        "en": "Tap {label}.",
+        "es": "Toca {label}."
+      },
+      "whereToLook": {
+        "en": "It's near the middle of the screen.",
+        "es": "Está cerca del centro de la pantalla."
+      },
+      "referenceImage": "ref-text-size-row",
+      "arrival": {
+        "title": {
+          "en": [
+            "Text Size"
+          ],
+          "es": [
+            "Tamaño del texto"
+          ]
+        }
+      },
+      "wrongTurns": [],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "slider",
+      "label": {
+        "en": "A",
+        "es": "A"
+      },
+      "instruction": {
+        "en": "Drag the dot to the right, toward the big {label}, until you can read comfortably.",
+        "es": "Arrastra el punto hacia la derecha, hacia la {label} grande, hasta que leas cómodo."
+      },
+      "whereToLook": {
+        "en": "The slider is at the bottom of the screen.",
+        "es": "El regulador está abajo en la pantalla."
+      },
+      "referenceImage": "ref-text-slider",
+      "arrival": {
+        "title": {
+          "en": [
+            "Text Size"
+          ],
+          "es": [
+            "Tamaño del texto"
+          ]
+        }
+      },
+      "wrongTurns": [],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": true
+    }
+  ]
+}

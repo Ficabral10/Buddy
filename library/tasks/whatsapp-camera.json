@@ -1,0 +1,265 @@
+{
+  "id": "whatsapp-camera",
+  "taskVersion": 1,
+  "title": {
+    "en": "Let WhatsApp use the camera",
+    "es": "Dejar que WhatsApp use la cámara"
+  },
+  "description": "WhatsApp cannot use the camera for photos or video calls because camera access is off. Guide them to Settings > Privacy & Security > Camera > turn on WhatsApp.",
+  "exampleRequests": {
+    "en": [
+      "WhatsApp can't use my camera",
+      "my video call shows black",
+      "I can't take a photo in WhatsApp"
+    ],
+    "es": [
+      "WhatsApp no puede usar la cámara",
+      "en la videollamada no me ven",
+      "no puedo tomar fotos en WhatsApp"
+    ]
+  },
+  "iosVersions": {
+    "min": "17.0",
+    "max": "27.99"
+  },
+  "labelsVerified": {
+    "en": false,
+    "es": false,
+    "note": "Labels come from planning notes, not a device. Walk the flow on the demo iPhone in each phone language before relying on it."
+  },
+  "finishAction": "tell-family",
+  "steps": [
+    {
+      "id": "open-settings",
+      "label": {
+        "en": "Settings",
+        "es": "Ajustes"
+      },
+      "instruction": {
+        "en": "Go to your home screen and open {label}.",
+        "es": "Ve a la pantalla de inicio y abre {label}."
+      },
+      "whereToLook": {
+        "en": "It's the gray icon with a gear.",
+        "es": "Es el ícono gris con un engranaje."
+      },
+      "referenceImage": "ref-settings-icon",
+      "arrival": {
+        "title": {
+          "en": [
+            "Settings"
+          ],
+          "es": [
+            "Ajustes"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Airplane Mode",
+            "General",
+            "Apps"
+          ],
+          "es": [
+            "Modo Avión",
+            "General",
+            "Apps"
+          ]
+        }
+      },
+      "wrongTurns": [],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "privacy",
+      "label": {
+        "en": "Privacy & Security",
+        "es": "Privacidad y seguridad"
+      },
+      "instruction": {
+        "en": "Scroll down a little and tap {label}.",
+        "es": "Baja un poco y toca {label}."
+      },
+      "whereToLook": {
+        "en": "It has a blue icon with a white hand.",
+        "es": "Tiene un ícono azul con una mano blanca."
+      },
+      "referenceImage": "ref-privacy-row",
+      "arrival": {
+        "title": {
+          "en": [
+            "Privacy & Security"
+          ],
+          "es": [
+            "Privacidad y seguridad"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Location Services",
+            "Tracking"
+          ],
+          "es": [
+            "Localización",
+            "Rastreo"
+          ]
+        }
+      },
+      "wrongTurns": [
+        {
+          "id": "general",
+          "title": {
+            "en": [
+              "General"
+            ],
+            "es": [
+              "General"
+            ]
+          },
+          "hint": {
+            "en": "That's General. Tap the back arrow at the top left, then look for {label}.",
+            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+          }
+        },
+        {
+          "id": "bluetooth",
+          "title": {
+            "en": [
+              "Bluetooth"
+            ],
+            "es": [
+              "Bluetooth"
+            ]
+          },
+          "hint": {
+            "en": "That's Bluetooth. Tap the back arrow at the top left, then look for {label}.",
+            "es": "Eso es Bluetooth. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+          }
+        }
+      ],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "camera",
+      "label": {
+        "en": "Camera",
+        "es": "Cámara"
+      },
+      "instruction": {
+        "en": "Tap {label}.",
+        "es": "Toca {label}."
+      },
+      "whereToLook": {
+        "en": "It's a few rows down, with a gray camera icon.",
+        "es": "Está unas filas más abajo, con un ícono gris de cámara."
+      },
+      "referenceImage": "ref-camera-row",
+      "arrival": {
+        "title": {
+          "en": [
+            "Camera"
+          ],
+          "es": [
+            "Cámara"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "WhatsApp"
+          ],
+          "es": [
+            "WhatsApp"
+          ]
+        }
+      },
+      "wrongTurns": [
+        {
+          "id": "photos",
+          "title": {
+            "en": [
+              "Photos"
+            ],
+            "es": [
+              "Fotos"
+            ]
+          },
+          "hint": {
+            "en": "That's Photos. Tap the back arrow, then look for {label}.",
+            "es": "Eso es Fotos. Toca la flecha de atrás y busca {label}."
+          }
+        },
+        {
+          "id": "microphone",
+          "title": {
+            "en": [
+              "Microphone"
+            ],
+            "es": [
+              "Micrófono"
+            ]
+          },
+          "hint": {
+            "en": "That's Microphone. Tap the back arrow, then look for {label}.",
+            "es": "Eso es Micrófono. Toca la flecha de atrás y busca {label}."
+          }
+        }
+      ],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false
+    },
+    {
+      "id": "whatsapp-switch",
+      "label": {
+        "en": "WhatsApp",
+        "es": "WhatsApp"
+      },
+      "instruction": {
+        "en": "Turn on the switch next to {label}. It turns green.",
+        "es": "Activa el interruptor al lado de {label}. Se pone verde."
+      },
+      "whereToLook": {
+        "en": "The switch is on the right side of the WhatsApp row.",
+        "es": "El interruptor está a la derecha de la fila de WhatsApp."
+      },
+      "referenceImage": "ref-camera-switch",
+      "arrival": {
+        "title": {
+          "en": [
+            "Camera"
+          ],
+          "es": [
+            "Cámara"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "WhatsApp"
+          ],
+          "es": [
+            "WhatsApp"
+          ]
+        }
+      },
+      "wrongTurns": [],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": true
+    }
+  ]
+}

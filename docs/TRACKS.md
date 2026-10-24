@@ -1,54 +1,53 @@
-# Track write-ups (about 150 words each)
+# Track write-ups
 
-Each paragraph maps the track's criteria to evidence. Before submitting, replace any claim that
-the demo doesn't actually show, and add real numbers from docs/IMPACT.md.
+Entering: **Anthropic**, **Best Use of Cartesia**, **Best People-First Hack**, **Microsoft (Built for
+the Real World + Customer Impact Award)**, **Best Use of Notability**. General prizes (Overall, Most
+Creative, Most Technically Complex, Hacker's Choice) are judged automatically.
+
+Before submitting: remove any claim the live demo doesn't show, and paste real numbers from
+docs/IMPACT.md and real notes from docs/CUSTOMER.md. Never invent interviews or results.
+
+## Anthropic (named community, real problem, it works, thoughtful use of Claude)
+**Community:** Spanish-speaking older adults in the US who rely on relatives for iPhone help.
+**Problem:** settings are buried and in English, help can't see their screen, and they are prime
+scam targets. **It works:** the full WhatsApp-photos task runs end to end in Spanish on a real
+iPhone. **Claude does the parts that need judgment:** it understands a messy spoken request and picks
+the right flow with tool calls (`lookup_task`, `get_step`, `respond`); when she's lost it explains
+the step in new words; when a screenshot shows a screen our reader doesn't know, and only if she says
+yes, Claude looks at that one image and tells her what to tap; and it explains in plain Spanish why a
+message she received looks like a scam. **Where it could go wrong, and what we did:** wrong steps
+(Claude can only point at labels from our curated library; code rejects invented tasks, invented
+labels, and any explanation missing the exact on-screen label); scams (rule-based red flags set a
+floor Claude can't lower, advice to tap links or pay is stripped, "someone called me from the bank"
+pauses the session); privacy (screenshots are read on the phone; private screens are never read or
+sent; the image goes to Claude only after she agrees). 44 automated tests cover these guardrails.
+
+## Best Use of Cartesia (voice core, works, accessibility, privacy)
+Voice is the product: many of our users read English poorly or not at all, so every instruction,
+hint, wrong-turn warning, and scam verdict is spoken by Cartesia Sonic 3.6 in Spanish or English,
+slightly slower (`generation_config.speed 0.9`) for older listeners. Calls go through our server so
+keys never reach the phone, and audio is cached so repeated lines play instantly. The flow is fully
+usable by voice: say the problem, say "otra vez", "estoy perdida", "siguiente", "para". Accessibility:
+large type, 60px buttons, typed input for every spoken action, an "only text" mode, and the
+browser's voice as a fallback if the network drops. Known limits are listed in the README.
 
 ## Best People-First Hack
-Lola is for people who are cut off from their own phones: older adults, especially
-Spanish-speaking grandparents who rely on relatives for every settings change. Its core rule is
-that the person does every tap; Lola only explains, one step at a time, naming the exact label
-their phone shows, in their language. It waits before helping, notices wrong turns, and accepts
-"estoy perdida" at any time. Privacy is built in: screen text is read on the phone and discarded,
-and Lola never asks for passwords or codes. Success is measured by independence (finished
-without calling someone), not engagement. The live demo shows a grandmother's real task end to end:
-letting WhatsApp see her photos so she can send them to her grandchildren herself.
-
-## Anthropic
-Community: Spanish-speaking older adults who rely on relatives for iPhone help. Problem: settings
-are nested and in English, and help can't see their screen. It works: one task end to end, in
-Spanish. Claude does the parts that need judgment: understanding a messy spoken request, choosing
-the right flow via tool calls (`lookup_task`, `get_step`, `respond`), and re-explaining a step in
-new words when someone is lost. Where it could go wrong, and our answer: wrong steps (Claude can
-only use our curated library; code rejects invented tasks and any re-explanation missing the exact
-on-screen label), scams (replies mentioning passwords or codes are replaced; "someone called me
-and told me to" pauses the session), privacy (screen text never leaves the phone; only the title
-line is sent when the user says they're lost). 36 automated tests cover these guardrails.
-
-## Cartesia
-Voice is the product: every instruction is spoken, and many of our users read English poorly or
-not at all. Lola uses Cartesia Sonic 3.6 through `/tts/bytes` with a Spanish and an English voice,
-`generation_config.speed` 0.9 for older listeners, and server-side calls so keys stay off the
-phone. Demo lines are pre-rendered into the app so it speaks even on bad Wi-Fi, with Apple's
-voice as a last fallback. Accessibility: typed input, big buttons, Dynamic Type, VoiceOver
-labels, and a "Only text" mode. Privacy: screen text processed on the device; usage logging is
-opt-in and counts only. Known limits are in the README. The live demo is one complete Spanish
-flow, from the spoken request to the grandmother sending her own message.
-
-## Meta: Bringing People Closer Together with AI
-A grandmother who can't get photos into WhatsApp is shut out of her grandchildren's lives. Lola's
-demo task is exactly that: Claude understands "WhatsApp no ve mis fotos", Lola talks her through
-turning on photo access in Spanish, and the last step opens a WhatsApp chat with the family member
-she chose, pre-filled. She taps Send; the app never sends anything. A "call my family" FaceTime
-button is always there when she wants a person. We're careful not to overclaim: Lola's core idea
-is independence, and the connection comes from removing the barrier, not from replacing family.
-The AI is essential, not decorative: without it there is no understanding of her spoken
-request and no re-explanation when she's lost.
+Lola is for people shut out of their own phones. Its rule is that she does every tap; Lola explains
+one step at a time, in her language, naming the exact label her phone shows, and when she sends a
+screenshot it circles the exact button. It waits before helping, catches wrong turns, checks
+suspicious messages for scams, and ends by opening a chat with family that she sends herself. Success
+is measured by independence (finished without calling someone), not time in the app.
 
 ## Microsoft: Built for the Real World / Customer Impact
-Customer understanding: *(summarize docs/CUSTOMER.md: who we talked to and what we learned).*
-Measurable usefulness: *(from docs/IMPACT.md: n people, finished unaided with and without Lola,
-median time, "I'm lost" count. Real numbers only.)* Path to production: a versioned task library
-with per-iOS-version label tables, a validator, an update process, and a "not sure" fallback
-(docs/PRODUCTION_PATH.md). Responsible design: the user does every tap; curated instructions;
-on-device screen processing; scam guardrails. End-to-end: the live demo goes from a spoken Spanish
-request to the finished task.
+**Customer understanding:** (summarize docs/CUSTOMER.md: who you talked to, what they said, what
+changed). **Measurable usefulness:** (from docs/IMPACT.md: n people, finished unaided with vs without
+Lola, median time, "I'm lost" count; real numbers only). **Path to production:** a versioned task
+library with a validator, per-language labels, an update path for new iOS versions, privacy-safe
+metrics, and a "not sure" fallback (docs/PRODUCTION_PATH.md). **Responsible design:** the user does
+every tap, instructions are curated, screens are processed on the device, scam guardrails are code.
+**End-to-end:** spoken Spanish request to finished task, live.
+
+## Best Use of Notability
+See docs/NOTABILITY.md. Link the shared Notability notebook here and describe, honestly, where it
+changed the build (for example: the interview notes that made us add the scam check; the sketch of
+the "Toca aquí" ring; the pivot from the native app to the web app when Xcode wouldn't install).

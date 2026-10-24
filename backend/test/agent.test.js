@@ -96,3 +96,11 @@ test('unknown requests are not guessed', () => {
   const r = fallbackReply(library, { ...base, userLanguage: 'en', text: 'my car bluetooth keeps dropping calls on the highway' });
   assert.equal(r.action, 'not_supported');
 });
+
+test('library-only routing picks the right task among several', () => {
+  const pick = (text, lang = 'es') => fallbackReply(library, { ...base, userLanguage: lang, text }).taskId;
+  assert.equal(pick('WhatsApp no ve mis fotos'), 'whatsapp-photos');
+  assert.equal(pick('WhatsApp no puede usar la cámara'), 'whatsapp-camera');
+  assert.equal(pick('las letras están muy chiquitas, no puedo leer'), 'text-size');
+  assert.equal(pick('the letters are too small', 'en'), 'text-size');
+});

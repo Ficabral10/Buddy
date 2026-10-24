@@ -2,7 +2,7 @@
 // The user does every tap; this page only decides what to say and when.
 import { UI, PHRASES, familyMessage } from './i18n.js';
 import { Speaker, Listener } from './voice.js';
-import { readScreenshot, warmUp } from './ocr.js';
+import { readScreenshot, readMessageText, toJpegBase64, warmUp } from './ocr.js';
 import { drawCard, floatingSupported, startFloating } from './floating.js';
 import { detect } from '/lib/detector.js';
 import { normalize, baseLang } from '/lib/text.js';
@@ -134,6 +134,76 @@ function talkButton(onHeard) {
           <p id="${id}-heard" class="heard"></p>`;
 }
 
+// ---------- Pointing at the button on her screenshot ----------
+const SENSITIVE = ['enter password', 'enter passcode', 'card number', 'cvv', 'security code', 'verification code',
+  'introduce la contrasena', 'ingresa tu contrasena', 'ingresa la contrasena', 'ingresa el codigo',
+  'numero de tarjeta', 'codigo de seguridad', 'codigo de verificacion'];
+function looksSensitive(lines) {
+  const all = lines.map((l) => normalize(l.text)).join(' ');
+  return SENSITIVE.some((w) => all.includes(w));
+}
+
+/** The row to tap: an exact (or near-exact) match, below the navigation bar. */
+function findLabel(lines, label) {
+  if (!label) return null;
+  const want = clean(label);
+  let best = null;
+  for (const l of lines) {
+    if (l.box.y < 0.11) continue; // skip status bar, back button and title
+    const got = clean(l.text);
+    const score = got === want ? 3 : got.startsWith(want) && got.length - want.length <= 4 ? 2 : got.includes(want) && want.length >= 5 ? 1 : 0;
+    if (score && (!best || score > best.score)) best = { score, box: l.box };
+  }
+  return best?.box ?? null;
+}
+
+/** The back button sits at the top left, under the status bar. */
+function backRing(lines) {
+  const top = lines.find((l) => l.box.y < 0.11 && l.box.y > 0.03 && l.box.x < 0.3);
+  return top ? { ...top.box, x: Math.max(0, top.box.x - 0.05), w: top.box.w + 0.06 } : { x: 0.01, y: 0.05, w: 0.28, h: 0.035 };
+}
+
+/** Crop the screenshot around the target and draw a ring + "Toca aquí". Stays in memory only. */
+function cropWithRing(canvas, ring, label) {
+  const W = canvas.width;
+  const H = canvas.height;
+  const cropH = Math.round(Math.min(H, W * 0.95));
+  const centerY = ring ? (ring.y + ring.h / 2) * H : cropH / 2;
+  const top = Math.max(0, Math.min(H - cropH, Math.round(centerY - cropH / 2)));
+  const out = document.createElement('canvas');
+  out.width = W;
+  out.height = cropH;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(canvas, 0, top, W, cropH, 0, 0, W, cropH);
+  if (ring) {
+    const pad = W * 0.03;
+    const x = ring.x * W - pad;
+    const y = ring.y * H - top - pad;
+    const w = Math.max(ring.w * W + pad * 2, W * 0.35);
+    const h = ring.h * H + pad * 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; // dim everything except the target
+    ctx.fillRect(0, 0, W, cropH);
+    ctx.drawImage(canvas, x, y + top, w, h, x, y, w, h);
+    ctx.lineWidth = Math.max(6, W * 0.012);
+    ctx.strokeStyle = '#ff3b30';
+    ctx.shadowColor = 'rgba(255,59,48,0.8)';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 18) : ctx.rect(x, y, w, h);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    const tag = `👆 ${settings.lang === 'es' ? 'Toca aquí' : 'Tap here'}`;
+    ctx.font = `700 ${Math.round(W * 0.05)}px -apple-system, system-ui, sans-serif`;
+    const tw = ctx.measureText(tag).width + W * 0.04;
+    const ty = y + h + W * 0.015 + W * 0.07 < cropH ? y + h + W * 0.015 : Math.max(0, y - W * 0.085);
+    ctx.fillStyle = '#ff3b30';
+    ctx.fillRect(x, ty, tw, W * 0.07);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(tag, x + W * 0.02, ty + W * 0.052);
+  }
+  return out.toDataURL('image/jpeg', 0.85);
+}
+
 // ---------- Onboarding ----------
 function onboarding(page = 0) {
   const choice = (label, on, attr) => `<button class="choice" aria-pressed="${on}" ${attr}>${esc(label)}</button>`;
@@ -181,8 +251,10 @@ function home(message = '') {
       <button id="send">${t().send}</button>
     </div>
     <p id="status" class="status" role="status"></p>
+    <button id="scam" class="scam-entry"><span class="big">🛡️ ${t().scamTitle}</span><span>${t().scamSub}</span></button>
     <h2>${t().canHelp}</h2>
     <div class="list">${tasks.map((k) => `<button data-task="${k.id}">${esc(k.title[settings.lang] ?? k.title.en)}</button>`).join('')}</div>`;
+  document.getElementById('scam').onclick = () => scamPage();
   const typed = document.getElementById('typed');
   document.getElementById('send').onclick = () => submit(typed.value);
   typed.onkeydown = (e) => { if (e.key === 'Enter') submit(typed.value); };
@@ -235,6 +307,62 @@ function familyButtons(session) {
     document.getElementById('call-family')?.addEventListener('click', () => session?.log('family_call'));
   });
   return `<a id="call-family" class="button" href="facetime:${digits}">📹 ${esc(t().callFamily(settings.familyName || settings.familyPhone))}</a>`;
+}
+
+// ---------- "¿Es una estafa?" ----------
+function scamPage(state = {}) {
+  const { text = '', result = null, reading = false, checking = false } = state;
+  const fam = settings.familyName || settings.familyPhone;
+  const digits = settings.familyPhone.replace(/\D/g, '');
+  let body;
+  if (result) {
+    const share = settings.familyPhone
+      ? `https://wa.me/${digits}?text=${encodeURIComponent(`${t().scamShare(settings.familyName)}\n\n"${text.slice(0, 600)}"`)}` : null;
+    body = `<section class="verdict risk-${result.risk}" role="alert">
+        <p class="headline">${result.risk === 'high' ? '🚫' : result.risk === 'medium' ? '⚠️' : '✅'} ${esc(result.headline)}</p>
+        ${result.flags.length ? `<ul class="chips">${result.flags.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+        ${result.explanation ? `<p>${esc(result.explanation)}</p>` : ''}
+        <p class="advice">${esc(result.advice)}</p>
+      </section>
+      ${share ? `<a class="button primary" href="${share}">💬 ${esc(t().scamAsk(fam))}</a>` : ''}
+      ${digits ? `<a class="button" href="facetime:${digits}">📹 ${esc(t().callFamily(fam))}</a>` : ''}
+      <button id="again">${t().scamAgain}</button>`;
+  } else {
+    body = `<p class="center">${t().scamHow}</p>
+      <label class="button primary" for="scam-shot">📷 ${t().scamPick}</label>
+      <input id="scam-shot" type="file" accept="image/*" hidden>
+      ${reading ? `<p class="status">${t().reading}</p>` : ''}
+      <textarea id="scam-text" rows="6" placeholder="${t().scamPaste}" aria-label="${t().scamPaste}">${esc(text)}</textarea>
+      ${text ? `<p class="privacy">${t().scamPrivacy}</p>` : ''}
+      <button id="check" class="primary" ${checking ? 'disabled' : ''}>${checking ? '…' : `🔍 ${t().scamCheck}`}</button>`;
+  }
+  $app.innerHTML = `<div class="top"><button id="back" style="width:auto">← ${t().back}</button><div class="title"></div></div>
+    ${mascot()}<h1>${t().scamTitle}</h1>${body}`;
+  document.getElementById('back').onclick = () => { speaker.stop(); home(); };
+  document.getElementById('again')?.addEventListener('click', () => scamPage());
+  const shot = document.getElementById('scam-shot');
+  if (shot) shot.onchange = async () => {
+    const file = shot.files?.[0];
+    if (!file) return;
+    scamPage({ reading: true });
+    let read = '';
+    try { read = await readMessageText(file, PHONE_LANG); } catch { /* reader failed */ }
+    scamPage({ text: read });
+  };
+  document.getElementById('check')?.addEventListener('click', async () => {
+    const msg = document.getElementById('scam-text').value.trim();
+    if (!msg) return;
+    scamPage({ text: msg, checking: true });
+    try {
+      const r = await api('/scam', { text: msg, userLanguage: settings.lang });
+      scamPage({ text: msg, result: r });
+      speak(r.say);
+    } catch {
+      scamPage({ text: msg });
+      speak(t().noConnect);
+    }
+  });
+  updateMascots();
 }
 
 // ---------- Settings ----------
@@ -459,16 +587,76 @@ class Session {
     }
   }
 
-  // ----- screenshot: read on the phone, then match against the library -----
+  // ----- screenshot: read on the phone, match against the library, then POINT at the button -----
   async screenshot(file) {
     if (!file) return;
     this.reading = true;
+    this.shot = null;
+    this.offerLook = false;
     this.render();
     let lines = [];
-    try { lines = await readScreenshot(file, PHONE_LANG); } catch { /* fall through */ }
+    let canvas = null;
+    try { ({ lines, canvas } = await readScreenshot(file, PHONE_LANG)); } catch { /* reader failed */ }
     this.reading = false;
+    if (!canvas) return this.say(`${this.instruction()} ${this.whereToLook()}`);
+    if (looksSensitive(lines)) return this.say(P().sensitive); // never read or send private screens
+
     const result = detect({ task: this.task, currentStep: this.i, lines, phoneLanguage: PHONE_LANG });
+    if (result.kind === 'none') {
+      const ring = findLabel(lines, this.label());
+      if (ring) {
+        // She's on the right screen: show her exactly where to tap.
+        this.shot = { url: cropWithRing(canvas, ring, this.label()) };
+        this.phase = 'guiding';
+        return this.say(`${P().tapHere} ${this.instruction()}`);
+      }
+      // Unknown screen: offer to let Claude look at this one screenshot, with her permission.
+      this.shot = { url: cropWithRing(canvas, null) };
+      this.look = { canvas, lines };
+      this.offerLook = true;
+      this.phase = 'guiding';
+      return this.say(P().askLook);
+    }
     this.apply(result);
+    if (this.phase === 'finished' || !this.step) return;
+    const ring = result.kind === 'wrongTurn' ? backRing(lines) : findLabel(lines, this.label());
+    this.shot = { url: cropWithRing(canvas, ring, result.kind === 'wrongTurn' ? null : this.label()) };
+    this.render();
+  }
+
+  /** She agreed: send only this screenshot (small JPEG) to Claude; the answer must use library labels. */
+  async lookWithClaude(yes) {
+    const look = this.look;
+    this.offerLook = false;
+    this.look = null;
+    if (!yes || !look) return this.say(`${this.instruction()} ${this.whereToLook()}`);
+    this.render(true);
+    try {
+      const r = await api('/vision', {
+        image: toJpegBase64(look.canvas), userLanguage: this.lang, phoneLanguage: PHONE_LANG,
+        taskId: this.task.id, stepId: this.step.id,
+      });
+      if (r.stepId) {
+        const k = this.task.steps.findIndex((st) => st.id === r.stepId);
+        if (k > this.i) { this.log('step_done', { step: this.step.id }); this.i = k; }
+      }
+      const ring = r.back ? backRing(look.lines) : r.target ? findLabel(look.lines, r.target) : null;
+      this.shot = { url: cropWithRing(look.canvas, ring, r.back ? null : r.target) };
+      this.say(r.say);
+    } catch {
+      this.say(`${this.instruction()} ${this.whereToLook()}`);
+    }
+  }
+
+  /** "Ana, ayúdame": a WhatsApp message that says exactly where she is stuck. She taps Send. */
+  familyHelpLink() {
+    if (!settings.familyPhone) return null;
+    const name = settings.familyName || '';
+    const title = this.task.title[this.lang] ?? this.task.title.en;
+    const msg = this.lang === 'es'
+      ? `${name ? `${name}, ` : ''}¿me ayudas? Estoy tratando de: ${title}. Voy en el ${this.stepText().toLowerCase()}: "${this.instruction()}"`
+      : `${name ? `${name}, ` : ''}can you help me? I'm trying to: ${title}. I'm on ${this.stepText().toLowerCase()}: "${this.instruction()}"`;
+    return `https://wa.me/${settings.familyPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
   }
 
   apply(r) {
@@ -510,6 +698,7 @@ class Session {
         <div class="row"><button data-a="lost">🧭 ${t().lost}</button><button data-a="pause">${this.paused ? `▶️ ${t().resume}` : `⏸ ${t().pause}`}</button></div>
         <label class="button" for="shot">📷 ${t().screenshot}</label>
         <input id="shot" type="file" accept="image/*" hidden>
+        ${this.familyHelpLink() ? `<a class="button" data-a="askFamily" href="${this.familyHelpLink()}">🙋 ${esc(t().askFamily(settings.familyName || settings.familyPhone))}</a>` : ''}
         ${familyButtons(this)}
         ${floatingSupported() ? `<details><summary>${t().floating}</summary><button data-a="float">🪟 ${t().floating}</button></details>` : ''}`;
     }
@@ -528,6 +717,9 @@ class Session {
       ${this.warn ? `<div class="warn" role="alert"><strong>⚠️ ${t().safety}</strong><p>${esc(this.warn)}</p></div>` : ''}
       <section class="card" aria-live="polite">
         ${text}${picture}
+        ${guiding && this.shot ? `<img class="shot" src="${this.shot.url}" alt="${esc(this.instruction())}">` : ''}
+        ${this.offerLook ? `<div class="look"><p>${t().lookNote}</p>
+          <div class="row"><button class="primary" data-a="lookYes">👀 ${t().lookYes}</button><button data-a="lookNo">${t().no}</button></div></div>` : ''}
         ${guiding || this.phase === 'finished' ? `<div class="progress" aria-hidden="true">${progress}</div>` : ''}
         ${this.reading ? `<p class="step">${t().reading}</p>` : ''}${thinking ? '<p class="step">…</p>' : ''}
       </section>
@@ -540,6 +732,8 @@ class Session {
       close: () => { current = null; home(); },
       float: async () => { drawCard({ text: this.line, step: this.stepText() }); await startFloating(); },
       wa: () => {},
+      lookYes: () => this.lookWithClaude(true), lookNo: () => this.lookWithClaude(false),
+      askFamily: () => this.log('family_call'),
     };
     $app.querySelectorAll('[data-a]').forEach((b) => { b.addEventListener('click', () => act[b.dataset.a]?.()); });
     const shot = document.getElementById('shot');

@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
-  "libraryVersion": "2026.10.24-1",
-  "languages": ["en", "es"],
-  "tasks": ["whatsapp-photos"]
+  "libraryVersion": "2026.10.24-2",
+  "languages": [
+    "en",
+    "es"
+  ],
+  "tasks": [
+    "whatsapp-photos",
+    "whatsapp-camera",
+    "text-size"
+  ]
 }

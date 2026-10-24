@@ -46,14 +46,13 @@ Before the demo, run the whole flow once: Cartesia audio is cached on the Mac, s
 
 ## What it does
 
-1. **Ask.** Say or type the problem in Spanish or English: "WhatsApp no ve mis fotos."
-2. **Confirm.** Claude matches it to a task in our curated library and restates it in one sentence.
-3. **Share (optional).** One big button opens Apple's own screen-sharing sheet. Text on the screen is read on the phone about once a second; each picture is thrown away.
-4. **Guided steps.** One instruction at a time, naming the exact label your phone shows ("Toca Privacidad y seguridad"), spoken by a Cartesia voice and shown in a card.
-5. **Help without hovering.** Lola waits, then repeats, then says where to look, then shows a picture. "Estoy perdida" gets a fresh explanation from Claude, checked against the library. A known wrong screen ("Eso es Bluetooth") gets a gentle way back.
-6. **Finish.** WhatsApp can see the photos. Lola offers to open a chat with a family member, pre-filled; she taps Send herself.
-
-If live screen sharing isn't available, the same flow works by screenshot or with a manual **Next** button.
+1. **Ask.** Say or type the problem in Spanish or English: "WhatsApp no ve mis fotos." Claude matches it to a task in our curated library (WhatsApp photos, WhatsApp camera, bigger text) and restates it.
+2. **Guided steps.** One instruction at a time, naming the exact label her phone shows ("Toca Privacidad y seguridad"), spoken by a Cartesia voice and shown in large type.
+3. **"Toca aquí."** iPhones don't let any app point at buttons in Settings. When she sends a screenshot, Lola reads it on the phone, works out which screen she's on, and draws a red ring around the exact row to tap. Wrong screen? It circles the back button and says so.
+4. **"Let Lola look."** If the screen isn't one Lola knows, she can choose to send that one screenshot to Claude, which may only point at labels from our library.
+5. **Help without hovering.** Lola waits, then repeats, then says where to look. "Estoy perdida" gets a fresh explanation from Claude. When she returns from Settings, Lola asks "¿Ya lo hiciste?"
+6. **"¿Es una estafa?"** She screenshots a strange text. Lola reads it on the phone, checks it for red flags, and Claude explains in plain Spanish whether it looks like a scam and what to do. One tap asks Ana.
+7. **Family, without dependence.** "Pedirle ayuda a Ana" opens WhatsApp with a message saying exactly where she's stuck; at the end, Lola opens a chat to send her grandkids the photos. She always taps Send.
 
 ## How we built it
 
@@ -64,7 +63,9 @@ If live screen sharing isn't available, the same flow works by screenshot or wit
 | Step detector (`BuddyCore`) | Matches recognized text against each step's "arrival signature" (screen title plus expected rows), recognizes wrong turns and going back, asks when unsure |
 | Task library (`library/`) | Curated, versioned steps with exact labels per phone language, hints, wrong-turn screens; validated by a schema checker |
 | Backend (Node, no dependencies) | Holds API keys, serves the library, runs the Claude agent with guardrails, proxies Cartesia |
-| Claude (Haiku 5.5 by default) | Picks the task via tool calls (`lookup_task`, `get_step`, `respond`), rewords steps in the user's language, handles "I'm lost" and side questions |
+| Claude (Haiku 5.5 by default) | Picks the task via tool calls (`lookup_task`, `get_step`, `respond`), rewords steps, handles "I'm lost"; with consent reads an unknown screenshot (`screen_help`); explains scam verdicts (`verdict`) |
+| Screenshot reader (web) | Tesseract.js on the phone finds text lines and positions; the detector places the screen and the app draws the ring |
+| Scam check | Rule-based red flags (links, urgency, payment, codes, impersonation, "new number") set a minimum risk; Claude explains; unsafe advice is stripped |
 | Cartesia Sonic 3.6 | The mascot's voice in Spanish and English, slightly slower for older listeners; demo lines pre-rendered so it works on bad Wi-Fi |
 
 ### How we use Claude
@@ -77,8 +78,9 @@ Claude does the parts where judgment matters: understanding a messy spoken reque
 |---|---|
 | **Wrong or outdated steps.** A wrong instruction to an older user is worse than none. | Steps come from the curated library, never the model's memory. A task ID Claude invents is rejected. A re-explanation that doesn't contain the step's exact on-screen label is replaced with the library text. Labels are flagged `labelsVerified: false` until checked on a real phone; unknown phone languages are flagged in the UI. No match means "I'm not sure" plus the family-call option. |
 | **Scams.** Older adults are targeted by people who call and "guide" them through their phone. | Lola never asks for passwords, codes, or card numbers; any reply that mentions them is replaced. If the user says someone called and told them what to do, Lola pauses and suggests calling family first. Banking, account recovery, and security requests go to official channels. These checks are plain code that runs before and after Claude. |
-| **Privacy.** A screen can show messages, photos, and bank apps. | Sharing starts only through Apple's sheet after our consent screen; the red indicator stays. Text is read on the phone; frames are discarded; only the screen's title line is ever sent (for "I'm lost"). Detection pauses on screens that look like password, code, or card fields. The usage log is opt-in, counts only, and stays on the phone. |
+| **Privacy.** A screen can show messages, photos, and bank apps. | Screenshots are read on the phone and never stored. Screens that look like password, code, or card fields are never read or sent. A screenshot goes to Claude only when she taps "Sí, mírala" for that one image; for the scam check, only the message text she confirms is sent. The usage log is opt-in, counts only, and stays on the phone. |
 | **Speech fails** (accents, noise, tremor). | Typed input everywhere; a tappable task list; big buttons for Repeat, Next, I'm lost, Pause, Stop. |
+| **Being talked into a scam.** | Rule-based red flags set a minimum risk the model can't lower; advice like "tap the link" or "pay" is stripped; high risk always ends with the same safe advice and a one-tap "ask Ana". |
 | **Overload.** Clippy-style interruptions. | One instruction at a time, hints only after a pause the user can lengthen, a one-word acknowledgement and nothing more. |
 | **Network down.** | Library-only replies and pre-rendered audio keep the demo flow working; Apple's on-device voice is the last fallback. |
 
@@ -105,7 +107,7 @@ Listening uses Apple's on-device speech recognition, not Cartesia: the Ink docs 
 ```bash
 cp .env.example .env          # add ANTHROPIC_API_KEY, CARTESIA_API_KEY, voice IDs
 cd backend
-npm test                      # 37 tests: library, agent guardrails, detector fixtures, server, web serving
+npm test                      # 44 tests: library, agent + vision + scam guardrails, detector fixtures, server
 npm start                     # http://localhost:8787
 npm run cache-audio           # optional: pre-render the demo's voice lines into the app
 ```
