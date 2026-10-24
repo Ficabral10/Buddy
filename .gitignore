@@ -6,5 +6,5 @@ backend/.audio-cache/
 xcuserdata/
 DerivedData/
 .build/
-ios/Buddy/Resources/Secrets.xcconfig
+ios/Buddy/Config/Secrets.xcconfig
 usage-*.jsonl

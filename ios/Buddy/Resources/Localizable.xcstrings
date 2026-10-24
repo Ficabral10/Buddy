@@ -1,0 +1,586 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Before you share your screen": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antes de compartir tu pantalla"
+          }
+        }
+      }
+    },
+    "Call %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llamar a %@"
+          }
+        }
+      }
+    },
+    "Choose a family member": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir a un familiar"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        }
+      }
+    },
+    "Counts only: steps, hints, and time. Never what's on your screen. Nothing is uploaded.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo cuentas: pasos, pistas y tiempo. Nunca lo que hay en tu pantalla. No se sube nada."
+          }
+        }
+      }
+    },
+    "Delete usage log": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar el registro de uso"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        }
+      }
+    },
+    "Each picture is thrown away right away. Nothing is saved or sent.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada imagen se descarta enseguida. No se guarda ni se envía nada."
+          }
+        }
+      }
+    },
+    "Export usage log": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar el registro de uso"
+          }
+        }
+      }
+    },
+    "Family member": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Familiar"
+          }
+        }
+      }
+    },
+    "How I help": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo te ayudo"
+          }
+        }
+      }
+    },
+    "How should I help you?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cómo quieres que te ayude?"
+          }
+        }
+      }
+    },
+    "I can see your screen. You can go to Settings now.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya veo tu pantalla. Ahora puedes ir a Ajustes."
+          }
+        }
+      }
+    },
+    "I heard: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuché: %@"
+          }
+        }
+      }
+    },
+    "I pause on screens with passwords, codes, or card numbers.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me pauso en pantallas con contraseñas, códigos o números de tarjeta."
+          }
+        }
+      }
+    },
+    "I read the words on your screen, on this phone, about once a second.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leo las palabras de tu pantalla, en este teléfono, más o menos una vez por segundo."
+          }
+        }
+      }
+    },
+    "I speak": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hablo"
+          }
+        }
+      }
+    },
+    "I'm lost": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estoy perdido"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma"
+          }
+        }
+      }
+    },
+    "Less": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos"
+          }
+        }
+      }
+    },
+    "Message %@ on WhatsApp": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribirle a %@ por WhatsApp"
+          }
+        }
+      }
+    },
+    "Microphone is off. You can type instead.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El micrófono está apagado. Puedes escribir."
+          }
+        }
+      }
+    },
+    "More": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente"
+          }
+        }
+      }
+    },
+    "Not now": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        }
+      }
+    },
+    "Only talk": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo hablar"
+          }
+        }
+      }
+    },
+    "Only text": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo texto"
+          }
+        }
+      }
+    },
+    "Optional. I only keep their name and number on this phone.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opcional. Solo guardo su nombre y número en este teléfono."
+          }
+        }
+      }
+    },
+    "Or type it here": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O escríbelo aquí"
+          }
+        }
+      }
+    },
+    "Output": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salida"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausa"
+          }
+        }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidad"
+          }
+        }
+      }
+    },
+    "Rebuild the app so the library folder is included.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a compilar la app para incluir la carpeta de la biblioteca."
+          }
+        }
+      }
+    },
+    "Repeat": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repetir"
+          }
+        }
+      }
+    },
+    "Save anonymous usage counts on this phone": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar cuentas de uso anónimas en este teléfono"
+          }
+        }
+      }
+    },
+    "Send": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar"
+          }
+        }
+      }
+    },
+    "Send a screenshot": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar una captura"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración"
+          }
+        }
+      }
+    },
+    "Show me your screen": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muéstrame tu pantalla"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parar"
+          }
+        }
+      }
+    },
+    "Stop anytime: tap Stop here, or the red indicator at the top of the screen.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para cuando quieras: toca Parar aquí o el indicador rojo arriba de la pantalla."
+          }
+        }
+      }
+    },
+    "Talk and show text": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hablar y mostrar texto"
+          }
+        }
+      }
+    },
+    "Tap and talk": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca y habla"
+          }
+        }
+      }
+    },
+    "Tap when you're done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca cuando termines"
+          }
+        }
+      }
+    },
+    "Task library missing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falta la biblioteca de tareas"
+          }
+        }
+      }
+    },
+    "Testing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pruebas"
+          }
+        }
+      }
+    },
+    "The helper stopped watching your screen.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El asistente dejó de ver tu pantalla."
+          }
+        }
+      }
+    },
+    "Things I can help with": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cosas en las que puedo ayudar"
+          }
+        }
+      }
+    },
+    "Time before I add a hint": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo antes de darte una pista"
+          }
+        }
+      }
+    },
+    "What do you need help with?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Con qué necesitas ayuda?"
+          }
+        }
+      }
+    },
+    "When you share your screen, I read the text on it on this phone, about once a second, and throw each picture away right away. Nothing from your screen is saved or sent. What you say to me is sent through our server to Anthropic (Claude) to understand it, and the helper's sentences go to Cartesia to make the voice.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando compartes tu pantalla, leo su texto en este teléfono, más o menos una vez por segundo, y descarto cada imagen enseguida. No se guarda ni se envía nada de tu pantalla. Lo que me dices pasa por nuestro servidor a Anthropic (Claude) para entenderlo, y las frases del asistente van a Cartesia para crear la voz."
+          }
+        }
+      }
+    },
+    "Which language should I speak?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿En qué idioma te hablo?"
+          }
+        }
+      }
+    },
+    "Who can help if you get stuck?": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Quién te puede ayudar si te atoras?"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sí"
+          }
+        }
+      }
+    },
+    "You can change this anytime.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes cambiarlo cuando quieras."
+          }
+        }
+      }
+    },
+    "Your phone's language isn't in my list yet, so the button may be named differently.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no tengo el idioma de tu teléfono, así que el botón puede tener otro nombre."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,101 @@
+# XcodeGen spec. Generate the Xcode project on a Mac:
+#   brew install xcodegen
+#   cp Buddy/Config/Secrets.example.xcconfig Buddy/Config/Secrets.xcconfig   # then edit
+#   xcodegen generate && open Buddy.xcodeproj
+name: Buddy
+options:
+  bundleIdPrefix: com.buddyhelper
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+configFiles:
+  Debug: Buddy/Config/Secrets.xcconfig
+  Release: Buddy/Config/Secrets.xcconfig
+
+settings:
+  base:
+    # The one place the app name lives. Siri opens apps by this name ("Hey Siri, open Lola").
+    APP_DISPLAY_NAME: Lola
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.10"
+    # Set your team in Secrets.xcconfig (DEVELOPMENT_TEAM = XXXXXXXXXX).
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  BuddyCore:
+    path: Packages/BuddyCore
+
+targets:
+  Buddy:
+    type: application
+    platform: iOS
+    sources:
+      - path: Buddy
+        excludes: ["Config/*.xcconfig", "Resources/DemoAudio", "Resources/DemoAudio/**", "**/*.md"]
+      - path: Buddy/Resources/DemoAudio
+        type: folder
+        buildPhase: resources
+      - path: Shared
+      - path: ../library
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: BuddyCore
+      - target: BroadcastExtension
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.buddyhelper.app
+        TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: Buddy/Buddy.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.buddyhelper.shared]
+    info:
+      path: Buddy/Info.plist
+      properties:
+        CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        # Name Siri and VoiceOver use. Verify pronunciation with docs/SIRI_NAME_TEST.md.
+        CFBundleSpokenName: $(APP_DISPLAY_NAME)
+        # Extra names Siri accepts (SiriKit key; confirm against Apple's docs before relying on it).
+        INAlternativeAppNames:
+          - INAlternativeAppName: "Lola helper"
+          - INAlternativeAppName: "Lola ayuda"
+        CFBundleLocalizations: [en, es]
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIBackgroundModes: [audio]
+        NSMicrophoneUsageDescription: "Lets you tell the helper what you need, out loud."
+        NSSpeechRecognitionUsageDescription: "Turns your words into text so the helper understands your request. On supported iPhones this happens on the device."
+        NSLocalNetworkUsageDescription: "Connects to the helper's server during the demo."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        BuddyBackendURL: $(BUDDY_BACKEND_URL)
+        BuddyClientToken: $(BUDDY_CLIENT_TOKEN)
+
+  BroadcastExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BroadcastExtension
+      - path: Shared
+    dependencies:
+      - package: BuddyCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.buddyhelper.app.broadcast
+        TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: BroadcastExtension/BroadcastExtension.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.buddyhelper.shared]
+    info:
+      path: BroadcastExtension/Info.plist
+      properties:
+        CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer

@@ -14,8 +14,12 @@ mkdirSync(outDir, { recursive: true });
 
 // Fixed phrases the app speaks (keep in sync with ios/Buddy/Session/Phrases.swift).
 const PHRASES = {
-  en: ['Done.', 'Are you on this screen?', 'Do you see a check mark next to it?', 'All set. WhatsApp can see your photos now.', 'Would you like to send a message to your family?'],
-  es: ['Listo.', '¿Estás en esta pantalla?', '¿Ves una marca al lado?', 'Listo. WhatsApp ya puede ver tus fotos.', '¿Quieres mandarle un mensaje a tu familia?'],
+  en: ['Done.', 'Are you on this screen?', 'Do you see a check mark next to it?', "That's it. It's done.",
+    'Would you like to send a message to your family?', 'Tap the big button. On the next screen, tap the button to start.',
+    'Look for the row in the picture.', 'Paused.', "Okay, I'll stop here."],
+  es: ['Listo.', '¿Estás en esta pantalla?', '¿Ves una marca al lado?', 'Eso es todo. Ya está.',
+    '¿Quieres mandarle un mensaje a tu familia?', 'Toca el botón grande. En la siguiente pantalla, toca el botón para iniciar.',
+    'Busca la fila que ves en la imagen.', 'En pausa.', 'Está bien, aquí me detengo.'],
 };
 
 const library = loadLibrary();
