@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { baseLang, fill } from './text.js';
@@ -10,7 +10,10 @@ export function loadLibrary(dir = LIBRARY_DIR) {
   const tasks = index.tasks.map((id) =>
     JSON.parse(readFileSync(path.join(dir, 'tasks', `${id}.json`), 'utf8')),
   );
-  return { ...index, tasks: Object.fromEntries(tasks.map((t) => [t.id, t])) };
+  // Real screenshots of each step, per phone language and iOS version (added with scripts/add-screen.js).
+  const screensFile = path.join(dir, 'screens', 'index.json');
+  const screens = existsSync(screensFile) ? JSON.parse(readFileSync(screensFile, 'utf8')).screens : [];
+  return { ...index, tasks: Object.fromEntries(tasks.map((t) => [t.id, t])), screens };
 }
 
 /**

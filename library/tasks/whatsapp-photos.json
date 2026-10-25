@@ -1,164 +1,511 @@
 {
   "id": "whatsapp-photos",
-  "taskVersion": 1,
+  "taskVersion": 2,
   "title": {
     "en": "Let WhatsApp see my photos",
-    "es": "Dejar que WhatsApp vea mis fotos"
+    "es": "Dejar que WhatsApp vea mis fotos",
+    "ko": "WhatsApp이 내 사진을 볼 수 있게 하기",
+    "vi": "Cho WhatsApp xem ảnh của tôi"
   },
   "description": "WhatsApp cannot see or attach the user's photos because photo access is off or limited. Guide the user to Settings > Privacy & Security > Photos > WhatsApp > Full Access.",
   "exampleRequests": {
-    "en": ["WhatsApp can't see my photos", "I can't send pictures on WhatsApp", "my photos don't show up in WhatsApp"],
-    "es": ["WhatsApp no ve mis fotos", "no puedo mandar fotos por WhatsApp", "no me salen las fotos en WhatsApp"]
+    "en": [
+      "WhatsApp can't see my photos",
+      "I can't send pictures on WhatsApp",
+      "my photos don't show up in WhatsApp"
+    ],
+    "es": [
+      "WhatsApp no ve mis fotos",
+      "no puedo mandar fotos por WhatsApp",
+      "no me salen las fotos en WhatsApp"
+    ],
+    "ko": [
+      "WhatsApp에서 사진이 안 보여요",
+      "WhatsApp으로 사진을 못 보내요",
+      "WhatsApp에 내 사진이 안 나와요"
+    ],
+    "vi": [
+      "WhatsApp không thấy ảnh của tôi",
+      "tôi không gửi được ảnh qua WhatsApp",
+      "ảnh không hiện trong WhatsApp"
+    ]
   },
-  "iosVersions": { "min": "17.0", "max": "27.99" },
+  "iosVersions": {
+    "min": "17.0",
+    "max": "27.99"
+  },
   "labelsVerified": {
     "en": false,
     "es": false,
-    "note": "Labels come from planning notes, not a device. Before the demo, walk the flow on the demo iPhone in each phone language, fix any label that differs, then set these to true."
+    "note": "Labels come from planning notes, not a device. Before the demo, walk the flow on the demo iPhone in each phone language, fix any label that differs, then set these to true.",
+    "ko": false,
+    "vi": false
   },
   "finishAction": "tell-family",
   "steps": [
     {
       "id": "open-settings",
-      "label": { "en": "Settings", "es": "Ajustes" },
+      "label": {
+        "en": "Settings",
+        "es": "Ajustes",
+        "ko": "설정",
+        "vi": "Cài đặt"
+      },
       "instruction": {
         "en": "Go to your home screen and open {label}.",
-        "es": "Ve a la pantalla de inicio y abre {label}."
+        "es": "Ve a tu pantalla de inicio y abre {label}.",
+        "ko": "홈 화면으로 가서 {label}을(를) 열어 주세요.",
+        "vi": "Bạn về màn hình chính rồi mở {label} nhé."
       },
       "whereToLook": {
-        "en": "It's the gray icon with a gear.",
-        "es": "Es el ícono gris con un engranaje."
+        "en": "It's the gray icon with a gear on it.",
+        "es": "Es el ícono gris con un engranaje.",
+        "ko": "톱니바퀴 모양의 회색 아이콘이에요.",
+        "vi": "Đó là biểu tượng màu xám có hình bánh răng."
       },
       "referenceImage": "ref-settings-icon",
+      "visual": {
+        "type": "app",
+        "icon": "settings"
+      },
       "arrival": {
-        "title": { "en": ["Settings"], "es": ["Ajustes"] },
-        "anyOf": { "en": ["Airplane Mode", "General", "Apps"], "es": ["Modo Avión", "General", "Apps"] }
+        "title": {
+          "en": [
+            "Settings"
+          ],
+          "es": [
+            "Ajustes"
+          ],
+          "ko": [
+            "설정"
+          ],
+          "vi": [
+            "Cài đặt"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Airplane Mode",
+            "General",
+            "Apps"
+          ],
+          "es": [
+            "Modo Avión",
+            "General",
+            "Apps"
+          ],
+          "ko": [
+            "에어플레인 모드",
+            "일반",
+            "앱"
+          ],
+          "vi": [
+            "Chế độ máy bay",
+            "Cài đặt chung",
+            "Ứng dụng"
+          ]
+        }
       },
       "wrongTurns": [],
-      "hintTimingSec": { "repeat": 10, "describe": 20, "picture": 30 },
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
       "confirmWithUser": false
     },
     {
       "id": "privacy",
-      "label": { "en": "Privacy & Security", "es": "Privacidad y seguridad" },
+      "label": {
+        "en": "Privacy & Security",
+        "es": "Privacidad y seguridad",
+        "ko": "개인정보 보호 및 보안",
+        "vi": "Quyền riêng tư & Bảo mật"
+      },
       "instruction": {
-        "en": "Scroll down a little and tap {label}.",
-        "es": "Baja un poco y toca {label}."
+        "en": "Scroll down a little, then tap {label}.",
+        "es": "Baja un poco y toca {label}.",
+        "ko": "조금 아래로 내린 다음 {label}을(를) 눌러 주세요.",
+        "vi": "Bạn kéo xuống một chút rồi chạm vào {label}."
       },
       "whereToLook": {
         "en": "It has a blue icon with a white hand.",
-        "es": "Tiene un ícono azul con una mano blanca."
+        "es": "Tiene un ícono azul con una mano blanca.",
+        "ko": "흰 손 모양이 있는 파란 아이콘이에요.",
+        "vi": "Nó có biểu tượng màu xanh với bàn tay trắng."
       },
       "referenceImage": "ref-privacy-row",
+      "visual": {
+        "type": "row",
+        "icon": "privacy"
+      },
       "arrival": {
-        "title": { "en": ["Privacy & Security"], "es": ["Privacidad y seguridad"] },
-        "anyOf": { "en": ["Location Services", "Tracking"], "es": ["Localización", "Rastreo"] }
+        "title": {
+          "en": [
+            "Privacy & Security"
+          ],
+          "es": [
+            "Privacidad y seguridad"
+          ],
+          "ko": [
+            "개인정보 보호 및 보안"
+          ],
+          "vi": [
+            "Quyền riêng tư & Bảo mật"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Location Services",
+            "Tracking"
+          ],
+          "es": [
+            "Localización",
+            "Rastreo"
+          ],
+          "ko": [
+            "위치 서비스",
+            "추적"
+          ],
+          "vi": [
+            "Dịch vụ định vị",
+            "Theo dõi"
+          ]
+        }
       },
       "wrongTurns": [
         {
           "id": "general",
-          "title": { "en": ["General"], "es": ["General"] },
+          "title": {
+            "en": [
+              "General"
+            ],
+            "es": [
+              "General"
+            ],
+            "ko": [
+              "일반"
+            ],
+            "vi": [
+              "Cài đặt chung"
+            ]
+          },
           "hint": {
             "en": "That's General. Tap the back arrow at the top left, then look for {label}.",
-            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 일반이에요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Cài đặt chung. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
           }
         },
         {
           "id": "bluetooth",
-          "title": { "en": ["Bluetooth"], "es": ["Bluetooth"] },
+          "title": {
+            "en": [
+              "Bluetooth"
+            ],
+            "es": [
+              "Bluetooth"
+            ],
+            "ko": [
+              "Bluetooth"
+            ],
+            "vi": [
+              "Bluetooth"
+            ]
+          },
           "hint": {
             "en": "That's Bluetooth. Tap the back arrow at the top left, then look for {label}.",
-            "es": "Eso es Bluetooth. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+            "es": "Eso es Bluetooth. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 Bluetooth예요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Bluetooth. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
           }
         }
       ],
-      "hintTimingSec": { "repeat": 10, "describe": 20, "picture": 30 },
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
       "confirmWithUser": false
     },
     {
       "id": "photos",
-      "label": { "en": "Photos", "es": "Fotos" },
+      "label": {
+        "en": "Photos",
+        "es": "Fotos",
+        "ko": "사진",
+        "vi": "Ảnh"
+      },
       "instruction": {
-        "en": "Tap {label}.",
-        "es": "Toca {label}."
+        "en": "Now tap {label}.",
+        "es": "Ahora toca {label}.",
+        "ko": "이제 {label}을(를) 눌러 주세요.",
+        "vi": "Giờ bạn chạm vào {label} nhé."
       },
       "whereToLook": {
-        "en": "It's a few rows down, with a colorful flower icon.",
-        "es": "Está unas filas más abajo, con un ícono de flor de colores."
+        "en": "It's a few rows down, next to a colorful flower icon.",
+        "es": "Está unas filas más abajo, junto a una flor de colores.",
+        "ko": "몇 줄 아래에 알록달록한 꽃 아이콘과 함께 있어요.",
+        "vi": "Nó ở vài dòng bên dưới, cạnh biểu tượng bông hoa nhiều màu."
       },
       "referenceImage": "ref-photos-row",
+      "visual": {
+        "type": "row",
+        "icon": "photos"
+      },
       "arrival": {
-        "title": { "en": ["Photos"], "es": ["Fotos"] },
-        "anyOf": { "en": ["WhatsApp"], "es": ["WhatsApp"] },
-        "noneOf": { "en": ["iCloud", "Shared Library"], "es": ["iCloud", "Fototeca compartida"] }
+        "title": {
+          "en": [
+            "Photos"
+          ],
+          "es": [
+            "Fotos"
+          ],
+          "ko": [
+            "사진"
+          ],
+          "vi": [
+            "Ảnh"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "WhatsApp"
+          ],
+          "es": [
+            "WhatsApp"
+          ],
+          "ko": [
+            "WhatsApp"
+          ],
+          "vi": [
+            "WhatsApp"
+          ]
+        },
+        "noneOf": {
+          "en": [
+            "iCloud",
+            "Shared Library"
+          ],
+          "es": [
+            "iCloud",
+            "Fototeca compartida"
+          ],
+          "ko": [
+            "iCloud",
+            "공유 사진 보관함"
+          ],
+          "vi": [
+            "iCloud",
+            "Thư viện được chia sẻ"
+          ]
+        }
       },
       "wrongTurns": [
         {
           "id": "location",
-          "title": { "en": ["Location Services"], "es": ["Localización"] },
+          "title": {
+            "en": [
+              "Location Services"
+            ],
+            "es": [
+              "Localización"
+            ],
+            "ko": [
+              "위치 서비스"
+            ],
+            "vi": [
+              "Dịch vụ định vị"
+            ]
+          },
           "hint": {
             "en": "That's Location Services. Tap the back arrow, then look for {label}.",
-            "es": "Eso es Localización. Toca la flecha de atrás y busca {label}."
+            "es": "Eso es Localización. Toca la flecha de atrás y busca {label}.",
+            "ko": "그건 위치 서비스예요. 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Dịch vụ định vị. Chạm mũi tên quay lại, rồi tìm {label}."
           }
         },
         {
           "id": "contacts",
-          "title": { "en": ["Contacts"], "es": ["Contactos"] },
+          "title": {
+            "en": [
+              "Contacts"
+            ],
+            "es": [
+              "Contactos"
+            ],
+            "ko": [
+              "연락처"
+            ],
+            "vi": [
+              "Danh bạ"
+            ]
+          },
           "hint": {
             "en": "That's Contacts. Tap the back arrow, then look for {label}.",
-            "es": "Eso es Contactos. Toca la flecha de atrás y busca {label}."
+            "es": "Eso es Contactos. Toca la flecha de atrás y busca {label}.",
+            "ko": "그건 연락처예요. 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Danh bạ. Chạm mũi tên quay lại, rồi tìm {label}."
           }
         },
         {
           "id": "camera",
-          "title": { "en": ["Camera"], "es": ["Cámara"] },
+          "title": {
+            "en": [
+              "Camera"
+            ],
+            "es": [
+              "Cámara"
+            ],
+            "ko": [
+              "카메라"
+            ],
+            "vi": [
+              "Camera"
+            ]
+          },
           "hint": {
             "en": "That's Camera. Tap the back arrow, then look for {label}.",
-            "es": "Eso es Cámara. Toca la flecha de atrás y busca {label}."
+            "es": "Eso es Cámara. Toca la flecha de atrás y busca {label}.",
+            "ko": "그건 카메라예요. 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Camera. Chạm mũi tên quay lại, rồi tìm {label}."
           }
         }
       ],
-      "hintTimingSec": { "repeat": 8, "describe": 16, "picture": 25 },
+      "hintTimingSec": {
+        "repeat": 8,
+        "describe": 16,
+        "picture": 25
+      },
       "confirmWithUser": false
     },
     {
       "id": "whatsapp-row",
-      "label": { "en": "WhatsApp", "es": "WhatsApp" },
+      "label": {
+        "en": "WhatsApp",
+        "es": "WhatsApp",
+        "ko": "WhatsApp",
+        "vi": "WhatsApp"
+      },
       "instruction": {
         "en": "Find {label} in the list and tap it.",
-        "es": "Busca {label} en la lista y tócalo."
+        "es": "Busca {label} en la lista y tócalo.",
+        "ko": "목록에서 {label}을(를) 찾아서 눌러 주세요.",
+        "vi": "Bạn tìm {label} trong danh sách rồi chạm vào."
       },
       "whereToLook": {
-        "en": "The list is in alphabetical order. Look for the green icon near the bottom.",
-        "es": "La lista está en orden alfabético. Busca el ícono verde cerca del final."
+        "en": "The apps are in ABC order. Look for the green icon near the bottom.",
+        "es": "Las apps están en orden alfabético. Busca el ícono verde cerca del final.",
+        "ko": "앱은 알파벳 순서예요. 아래쪽에서 초록색 아이콘을 찾아보세요.",
+        "vi": "Các ứng dụng xếp theo thứ tự chữ cái. Bạn tìm biểu tượng màu xanh lá gần cuối."
       },
       "referenceImage": "ref-whatsapp-row",
+      "visual": {
+        "type": "row",
+        "icon": "whatsapp"
+      },
       "arrival": {
-        "title": { "en": ["WhatsApp"], "es": ["WhatsApp"] },
-        "anyOf": { "en": ["Full Access", "Limited Access"], "es": ["Acceso completo", "Acceso limitado"] }
+        "title": {
+          "en": [
+            "WhatsApp"
+          ],
+          "es": [
+            "WhatsApp"
+          ],
+          "ko": [
+            "WhatsApp"
+          ],
+          "vi": [
+            "WhatsApp"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Full Access",
+            "Limited Access"
+          ],
+          "es": [
+            "Acceso completo",
+            "Acceso limitado"
+          ],
+          "ko": [
+            "전체 접근",
+            "제한된 접근"
+          ],
+          "vi": [
+            "Toàn quyền truy cập",
+            "Truy cập giới hạn"
+          ]
+        }
       },
       "wrongTurns": [],
-      "hintTimingSec": { "repeat": 8, "describe": 16, "picture": 25 },
+      "hintTimingSec": {
+        "repeat": 8,
+        "describe": 16,
+        "picture": 25
+      },
       "confirmWithUser": false
     },
     {
       "id": "full-access",
-      "label": { "en": "Full Access", "es": "Acceso completo" },
+      "label": {
+        "en": "Full Access",
+        "es": "Acceso completo",
+        "ko": "전체 접근",
+        "vi": "Toàn quyền truy cập"
+      },
       "instruction": {
-        "en": "Tap {label}. If a box asks you to confirm, tap {label} again.",
-        "es": "Toca {label}. Si aparece un aviso para confirmar, toca {label} otra vez."
+        "en": "Tap {label}. If a box pops up asking you to confirm, tap {label} again.",
+        "es": "Toca {label}. Si sale un aviso para confirmar, toca {label} otra vez.",
+        "ko": "{label}을(를) 눌러 주세요. 확인 창이 뜨면 {label}을(를) 한 번 더 누르면 돼요.",
+        "vi": "Bạn chạm vào {label}. Nếu có hộp hỏi xác nhận, chạm {label} thêm lần nữa."
       },
       "whereToLook": {
-        "en": "It's one of the options in the list. A check mark shows which one is on.",
-        "es": "Es una de las opciones de la lista. Una marca muestra cuál está activada."
+        "en": "It's one of the choices in the list. A check mark shows which one is picked.",
+        "es": "Es una de las opciones de la lista. Una palomita muestra cuál está elegida.",
+        "ko": "목록에 있는 선택지 중 하나예요. 체크 표시가 선택된 항목을 보여 줘요.",
+        "vi": "Đó là một lựa chọn trong danh sách. Dấu tích cho biết mục nào đang được chọn."
       },
       "referenceImage": "ref-full-access",
+      "visual": {
+        "type": "option"
+      },
       "arrival": {
-        "title": { "en": ["WhatsApp"], "es": ["WhatsApp"] },
-        "anyOf": { "en": ["Full Access"], "es": ["Acceso completo"] }
+        "title": {
+          "en": [
+            "WhatsApp"
+          ],
+          "es": [
+            "WhatsApp"
+          ],
+          "ko": [
+            "WhatsApp"
+          ],
+          "vi": [
+            "WhatsApp"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Full Access"
+          ],
+          "es": [
+            "Acceso completo"
+          ],
+          "ko": [
+            "전체 접근"
+          ],
+          "vi": [
+            "Toàn quyền truy cập"
+          ]
+        }
       },
       "wrongTurns": [],
-      "hintTimingSec": { "repeat": 10, "describe": 20, "picture": 30 },
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
       "confirmWithUser": true
     }
   ]

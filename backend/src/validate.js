@@ -1,5 +1,12 @@
 // Validates the task library against library/SCHEMA.md. Returns { errors, warnings }.
 
+// Kept in sync with web/visual.js, which draws these.
+export const VISUAL_TYPES = ['app', 'row', 'option', 'toggle', 'slider', 'button', 'back', 'swipe'];
+export const SWIPE_DIRECTIONS = ['down-from-top-right', 'down-from-top', 'up-from-bottom', 'left', 'right'];
+export const VISUAL_ICONS = ['settings', 'display', 'privacy', 'photos', 'camera', 'whatsapp', 'accessibility', 'general',
+  'wifi', 'bluetooth', 'notifications', 'phone', 'messages', 'facetime', 'mail', 'safari', 'appstore', 'battery', 'sounds', 'faceid',
+  'flashlight', 'airplane', 'rotation', 'volume', 'brightness', 'maps', 'clock', 'calendar', 'contacts', 'youtube'];
+
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const isStr = (v) => typeof v === 'string' && v.trim().length > 0;
 
@@ -56,7 +63,15 @@ export function validateLibrary(library) {
       perLang(errors, `${sw}.label`, s.label, langs);
       perLang(errors, `${sw}.instruction`, s.instruction, langs, (v) => isStr(v) && v.includes('{label}'));
       perLang(errors, `${sw}.whereToLook`, s.whereToLook, langs);
+      if (s.iosVersions !== undefined && (!isObj(s.iosVersions) || !(isStr(s.iosVersions.min) || isStr(s.iosVersions.max)))) {
+        errors.push(`${sw}.iosVersions: needs min and/or max, e.g. {"min": "27.0"}`);
+      }
       if (!isStr(s.referenceImage)) warnings.push(`${sw}: no referenceImage (third hint level will be skipped)`);
+      if (s.visual !== undefined) {
+        if (!isObj(s.visual) || !VISUAL_TYPES.includes(s.visual.type)) errors.push(`${sw}.visual: type must be one of ${VISUAL_TYPES.join(', ')}`);
+        else if (s.visual.icon !== undefined && !VISUAL_ICONS.includes(s.visual.icon)) errors.push(`${sw}.visual: unknown icon "${s.visual.icon}"`);
+        else if (s.visual.type === 'swipe' && !SWIPE_DIRECTIONS.includes(s.visual.direction)) errors.push(`${sw}.visual: swipe needs a direction`);
+      } else warnings.push(`${sw}: no visual (no picture shown with this step)`);
       signature(errors, `${sw}.arrival`, s.arrival, langs);
       if (!Array.isArray(s.wrongTurns)) errors.push(`${sw}: wrongTurns must be an array`);
       else s.wrongTurns.forEach((wt, j) => {
@@ -78,5 +93,18 @@ export function validateLibrary(library) {
       }
     });
   }
+
+  const unit = (n) => typeof n === 'number' && n >= 0 && n <= 1;
+  (library.screens ?? []).forEach((sc, i) => {
+    const sw = `screens[${i}]${sc.file ? ` (${sc.file})` : ''}`;
+    const step = library.tasks[sc.task]?.steps.find((s) => s.id === sc.step);
+    if (!step) errors.push(`${sw}: unknown task/step "${sc.task}/${sc.step}"`);
+    if (!langs?.includes(sc.lang)) errors.push(`${sw}: lang must be one of the library languages`);
+    if (!/^\d+$/.test(String(sc.ios))) errors.push(`${sw}: ios must be a major version number, e.g. 27`);
+    if (!isStr(sc.file) || !/^\w[\w-]*\/\w[\w.-]*\.(jpg|png)$/.test(sc.file) || sc.file.includes('..')) errors.push(`${sw}: file must look like "<task>/<name>.jpg"`);
+    if (sc.box !== null && !(isObj(sc.box) && ['x', 'y', 'w', 'h'].every((k) => unit(sc.box[k])))) {
+      errors.push(`${sw}: box must be null or {x,y,w,h} between 0 and 1`);
+    }
+  });
   return { errors, warnings };
 }

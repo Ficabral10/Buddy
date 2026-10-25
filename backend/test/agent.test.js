@@ -89,7 +89,7 @@ test('Claude errors fall back to the library', async () => {
   const req = { ...base, event: 'lost', taskId: 'whatsapp-photos', stepId: 'photos' };
   const r = await runAgent(req, { library, apiKey: 'k', claude });
   assert.equal(r.note, 'claude-error');
-  assert.equal(r.say, 'Toca Fotos. Está unas filas más abajo, con un ícono de flor de colores.');
+  assert.equal(r.say, 'Ahora toca Fotos. Está unas filas más abajo, junto a una flor de colores.');
 });
 
 test('unknown requests are not guessed', () => {

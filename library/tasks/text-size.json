@@ -1,11 +1,13 @@
 {
   "id": "text-size",
-  "taskVersion": 1,
+  "taskVersion": 3,
   "title": {
     "en": "Make the letters bigger",
-    "es": "Hacer las letras más grandes"
+    "es": "Hacer las letras más grandes",
+    "ko": "글자를 더 크게 하기",
+    "vi": "Làm chữ to hơn"
   },
-  "description": "The user finds the text on the phone too small to read. Guide them to Settings > Display & Brightness > Text Size and drag the slider.",
+  "description": "The user finds the text on the phone too small to read. Guide them to Settings > Display & Brightness > Text Size (iOS 26 and older) or Settings > Appearance > Text Size (iOS 27), and drag the slider.",
   "exampleRequests": {
     "en": [
       "the letters are too small",
@@ -16,6 +18,16 @@
       "las letras están muy chiquitas",
       "no puedo leer mi teléfono",
       "quiero letras más grandes"
+    ],
+    "ko": [
+      "글자가 너무 작아요",
+      "휴대폰 글씨가 안 보여요",
+      "글씨 크게 해 주세요"
+    ],
+    "vi": [
+      "chữ nhỏ quá",
+      "tôi không đọc được điện thoại",
+      "làm chữ to lên"
     ]
   },
   "iosVersions": {
@@ -25,7 +37,9 @@
   "labelsVerified": {
     "en": false,
     "es": false,
-    "note": "Labels come from planning notes, not a device. Walk the flow on the demo iPhone in each phone language before relying on it."
+    "note": "Labels come from planning notes, not a device. The iOS 27 Appearance step comes from press reports (MacObserver, Apfelpatient), and its es/ko/vi names are guesses. Walk the flow on a demo iPhone in each phone language and iOS version before relying on it.",
+    "ko": false,
+    "vi": false
   },
   "finishAction": "none",
   "steps": [
@@ -33,17 +47,27 @@
       "id": "open-settings",
       "label": {
         "en": "Settings",
-        "es": "Ajustes"
+        "es": "Ajustes",
+        "ko": "설정",
+        "vi": "Cài đặt"
       },
       "instruction": {
         "en": "Go to your home screen and open {label}.",
-        "es": "Ve a la pantalla de inicio y abre {label}."
+        "es": "Ve a tu pantalla de inicio y abre {label}.",
+        "ko": "홈 화면으로 가서 {label}을(를) 열어 주세요.",
+        "vi": "Bạn về màn hình chính rồi mở {label} nhé."
       },
       "whereToLook": {
-        "en": "It's the gray icon with a gear.",
-        "es": "Es el ícono gris con un engranaje."
+        "en": "It's the gray icon with a gear on it.",
+        "es": "Es el ícono gris con un engranaje.",
+        "ko": "톱니바퀴 모양의 회색 아이콘이에요.",
+        "vi": "Đó là biểu tượng màu xám có hình bánh răng."
       },
       "referenceImage": "ref-settings-icon",
+      "visual": {
+        "type": "app",
+        "icon": "settings"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -51,6 +75,12 @@
           ],
           "es": [
             "Ajustes"
+          ],
+          "ko": [
+            "설정"
+          ],
+          "vi": [
+            "Cài đặt"
           ]
         },
         "anyOf": {
@@ -63,6 +93,16 @@
             "Modo Avión",
             "General",
             "Apps"
+          ],
+          "ko": [
+            "에어플레인 모드",
+            "일반",
+            "앱"
+          ],
+          "vi": [
+            "Chế độ máy bay",
+            "Cài đặt chung",
+            "Ứng dụng"
           ]
         }
       },
@@ -78,17 +118,27 @@
       "id": "display",
       "label": {
         "en": "Display & Brightness",
-        "es": "Pantalla y brillo"
+        "es": "Pantalla y brillo",
+        "ko": "디스플레이 및 밝기",
+        "vi": "Màn hình & Độ sáng"
       },
       "instruction": {
-        "en": "Tap {label}.",
-        "es": "Toca {label}."
+        "en": "Now tap {label}.",
+        "es": "Ahora toca {label}.",
+        "ko": "이제 {label}을(를) 눌러 주세요.",
+        "vi": "Giờ bạn chạm vào {label} nhé."
       },
       "whereToLook": {
-        "en": "It has a blue icon with a sun. Scroll down a little if you don't see it.",
-        "es": "Tiene un ícono azul con un sol. Baja un poco si no lo ves."
+        "en": "It has a blue icon with a sun. If you don't see it, scroll down a little.",
+        "es": "Tiene un ícono azul con un sol. Si no lo ves, baja un poco.",
+        "ko": "해 모양의 파란 아이콘이에요. 안 보이면 조금 아래로 내려 보세요.",
+        "vi": "Nó có biểu tượng màu xanh hình mặt trời. Nếu chưa thấy, bạn kéo xuống một chút."
       },
       "referenceImage": "ref-display-row",
+      "visual": {
+        "type": "row",
+        "icon": "display"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -96,6 +146,12 @@
           ],
           "es": [
             "Pantalla y brillo"
+          ],
+          "ko": [
+            "디스플레이 및 밝기"
+          ],
+          "vi": [
+            "Màn hình & Độ sáng"
           ]
         },
         "anyOf": {
@@ -106,6 +162,14 @@
           "es": [
             "Tamaño del texto",
             "Texto en negrita"
+          ],
+          "ko": [
+            "텍스트 크기",
+            "볼드체 텍스트"
+          ],
+          "vi": [
+            "Cỡ chữ",
+            "Văn bản in đậm"
           ]
         }
       },
@@ -118,11 +182,111 @@
             ],
             "es": [
               "General"
+            ],
+            "ko": [
+              "일반"
+            ],
+            "vi": [
+              "Cài đặt chung"
             ]
           },
           "hint": {
             "en": "That's General. Tap the back arrow at the top left, then look for {label}.",
-            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 일반이에요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Cài đặt chung. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
+          }
+        }
+      ],
+      "hintTimingSec": {
+        "repeat": 10,
+        "describe": 20,
+        "picture": 30
+      },
+      "confirmWithUser": false,
+      "iosVersions": {
+        "max": "26.99"
+      }
+    },
+    {
+      "id": "appearance",
+      "iosVersions": {
+        "min": "27.0"
+      },
+      "label": {
+        "en": "Appearance",
+        "es": "Apariencia",
+        "ko": "화면 모드",
+        "vi": "Giao diện"
+      },
+      "instruction": {
+        "en": "Now tap {label}.",
+        "es": "Ahora toca {label}.",
+        "ko": "이제 {label}을(를) 눌러 주세요.",
+        "vi": "Giờ bạn chạm vào {label} nhé."
+      },
+      "whereToLook": {
+        "en": "It is in the main Settings list. If you do not see it, scroll down a little.",
+        "es": "Está en la lista principal de Ajustes. Si no lo ves, baja un poco.",
+        "ko": "설정 첫 화면 목록에 있어요. 안 보이면 조금 아래로 내려 보세요.",
+        "vi": "Nó nằm trong danh sách chính của Cài đặt. Nếu chưa thấy, bạn kéo xuống một chút."
+      },
+      "referenceImage": "ref-appearance-row",
+      "visual": {
+        "type": "row"
+      },
+      "arrival": {
+        "title": {
+          "en": [
+            "Appearance"
+          ],
+          "es": [
+            "Apariencia"
+          ],
+          "ko": [
+            "화면 모드"
+          ],
+          "vi": [
+            "Giao diện"
+          ]
+        },
+        "anyOf": {
+          "en": [
+            "Text Size"
+          ],
+          "es": [
+            "Tamaño del texto"
+          ],
+          "ko": [
+            "텍스트 크기"
+          ],
+          "vi": [
+            "Cỡ chữ"
+          ]
+        }
+      },
+      "wrongTurns": [
+        {
+          "id": "display",
+          "title": {
+            "en": [
+              "Display & Brightness"
+            ],
+            "es": [
+              "Pantalla y brillo"
+            ],
+            "ko": [
+              "디스플레이 및 밝기"
+            ],
+            "vi": [
+              "Màn hình & Độ sáng"
+            ]
+          },
+          "hint": {
+            "en": "That is Display & Brightness. On this iPhone the letter size moved. Tap the back arrow at the top left, then look for {label}.",
+            "es": "Eso es Pantalla y brillo. En este iPhone el tamaño de letra se cambió de lugar. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 디스플레이 및 밝기예요. 이 아이폰에서는 글자 크기 메뉴가 옮겨졌어요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Màn hình & Độ sáng. Trên iPhone này, cỡ chữ đã chuyển chỗ. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
           }
         }
       ],
@@ -137,17 +301,26 @@
       "id": "text-size-row",
       "label": {
         "en": "Text Size",
-        "es": "Tamaño del texto"
+        "es": "Tamaño del texto",
+        "ko": "텍스트 크기",
+        "vi": "Cỡ chữ"
       },
       "instruction": {
-        "en": "Tap {label}.",
-        "es": "Toca {label}."
+        "en": "Now tap {label}.",
+        "es": "Ahora toca {label}.",
+        "ko": "이제 {label}을(를) 눌러 주세요.",
+        "vi": "Giờ bạn chạm vào {label} nhé."
       },
       "whereToLook": {
         "en": "It's near the middle of the screen.",
-        "es": "Está cerca del centro de la pantalla."
+        "es": "Está más o menos a la mitad de la pantalla.",
+        "ko": "화면 가운데쯤에 있어요.",
+        "vi": "Nó ở khoảng giữa màn hình."
       },
       "referenceImage": "ref-text-size-row",
+      "visual": {
+        "type": "row"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -155,6 +328,12 @@
           ],
           "es": [
             "Tamaño del texto"
+          ],
+          "ko": [
+            "텍스트 크기"
+          ],
+          "vi": [
+            "Cỡ chữ"
           ]
         }
       },
@@ -170,17 +349,26 @@
       "id": "slider",
       "label": {
         "en": "A",
-        "es": "A"
+        "es": "A",
+        "ko": "A",
+        "vi": "A"
       },
       "instruction": {
-        "en": "Drag the dot to the right, toward the big {label}, until you can read comfortably.",
-        "es": "Arrastra el punto hacia la derecha, hacia la {label} grande, hasta que leas cómodo."
+        "en": "Slide the dot to the right, toward the big {label}, until the words are easy to read.",
+        "es": "Desliza el punto hacia la derecha, hacia la {label} grande, hasta que leas sin esfuerzo.",
+        "ko": "점을 오른쪽 큰 {label} 쪽으로 밀어서 글씨가 편하게 읽힐 때까지 키워 보세요.",
+        "vi": "Bạn kéo dấu chấm sang phải, về phía chữ {label} lớn, đến khi đọc thấy dễ."
       },
       "whereToLook": {
         "en": "The slider is at the bottom of the screen.",
-        "es": "El regulador está abajo en la pantalla."
+        "es": "La barra está abajo en la pantalla.",
+        "ko": "슬라이더는 화면 아래쪽에 있어요.",
+        "vi": "Thanh trượt nằm ở cuối màn hình."
       },
       "referenceImage": "ref-text-slider",
+      "visual": {
+        "type": "slider"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -188,6 +376,12 @@
           ],
           "es": [
             "Tamaño del texto"
+          ],
+          "ko": [
+            "텍스트 크기"
+          ],
+          "vi": [
+            "Cỡ chữ"
           ]
         }
       },

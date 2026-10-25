@@ -1,9 +1,11 @@
 {
   "id": "whatsapp-camera",
-  "taskVersion": 1,
+  "taskVersion": 2,
   "title": {
     "en": "Let WhatsApp use the camera",
-    "es": "Dejar que WhatsApp use la cámara"
+    "es": "Dejar que WhatsApp use la cámara",
+    "ko": "WhatsApp이 카메라를 쓸 수 있게 하기",
+    "vi": "Cho WhatsApp dùng camera"
   },
   "description": "WhatsApp cannot use the camera for photos or video calls because camera access is off. Guide them to Settings > Privacy & Security > Camera > turn on WhatsApp.",
   "exampleRequests": {
@@ -16,6 +18,16 @@
       "WhatsApp no puede usar la cámara",
       "en la videollamada no me ven",
       "no puedo tomar fotos en WhatsApp"
+    ],
+    "ko": [
+      "WhatsApp에서 카메라가 안 돼요",
+      "영상 통화 화면이 까매요",
+      "WhatsApp에서 사진을 못 찍어요"
+    ],
+    "vi": [
+      "WhatsApp không dùng được camera",
+      "gọi video bị đen màn hình",
+      "tôi không chụp ảnh được trong WhatsApp"
     ]
   },
   "iosVersions": {
@@ -25,7 +37,9 @@
   "labelsVerified": {
     "en": false,
     "es": false,
-    "note": "Labels come from planning notes, not a device. Walk the flow on the demo iPhone in each phone language before relying on it."
+    "note": "Labels come from planning notes, not a device. Walk the flow on the demo iPhone in each phone language before relying on it.",
+    "ko": false,
+    "vi": false
   },
   "finishAction": "tell-family",
   "steps": [
@@ -33,17 +47,27 @@
       "id": "open-settings",
       "label": {
         "en": "Settings",
-        "es": "Ajustes"
+        "es": "Ajustes",
+        "ko": "설정",
+        "vi": "Cài đặt"
       },
       "instruction": {
         "en": "Go to your home screen and open {label}.",
-        "es": "Ve a la pantalla de inicio y abre {label}."
+        "es": "Ve a tu pantalla de inicio y abre {label}.",
+        "ko": "홈 화면으로 가서 {label}을(를) 열어 주세요.",
+        "vi": "Bạn về màn hình chính rồi mở {label} nhé."
       },
       "whereToLook": {
-        "en": "It's the gray icon with a gear.",
-        "es": "Es el ícono gris con un engranaje."
+        "en": "It's the gray icon with a gear on it.",
+        "es": "Es el ícono gris con un engranaje.",
+        "ko": "톱니바퀴 모양의 회색 아이콘이에요.",
+        "vi": "Đó là biểu tượng màu xám có hình bánh răng."
       },
       "referenceImage": "ref-settings-icon",
+      "visual": {
+        "type": "app",
+        "icon": "settings"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -51,6 +75,12 @@
           ],
           "es": [
             "Ajustes"
+          ],
+          "ko": [
+            "설정"
+          ],
+          "vi": [
+            "Cài đặt"
           ]
         },
         "anyOf": {
@@ -63,6 +93,16 @@
             "Modo Avión",
             "General",
             "Apps"
+          ],
+          "ko": [
+            "에어플레인 모드",
+            "일반",
+            "앱"
+          ],
+          "vi": [
+            "Chế độ máy bay",
+            "Cài đặt chung",
+            "Ứng dụng"
           ]
         }
       },
@@ -78,17 +118,27 @@
       "id": "privacy",
       "label": {
         "en": "Privacy & Security",
-        "es": "Privacidad y seguridad"
+        "es": "Privacidad y seguridad",
+        "ko": "개인정보 보호 및 보안",
+        "vi": "Quyền riêng tư & Bảo mật"
       },
       "instruction": {
-        "en": "Scroll down a little and tap {label}.",
-        "es": "Baja un poco y toca {label}."
+        "en": "Scroll down a little, then tap {label}.",
+        "es": "Baja un poco y toca {label}.",
+        "ko": "조금 아래로 내린 다음 {label}을(를) 눌러 주세요.",
+        "vi": "Bạn kéo xuống một chút rồi chạm vào {label}."
       },
       "whereToLook": {
         "en": "It has a blue icon with a white hand.",
-        "es": "Tiene un ícono azul con una mano blanca."
+        "es": "Tiene un ícono azul con una mano blanca.",
+        "ko": "흰 손 모양이 있는 파란 아이콘이에요.",
+        "vi": "Nó có biểu tượng màu xanh với bàn tay trắng."
       },
       "referenceImage": "ref-privacy-row",
+      "visual": {
+        "type": "row",
+        "icon": "privacy"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -96,6 +146,12 @@
           ],
           "es": [
             "Privacidad y seguridad"
+          ],
+          "ko": [
+            "개인정보 보호 및 보안"
+          ],
+          "vi": [
+            "Quyền riêng tư & Bảo mật"
           ]
         },
         "anyOf": {
@@ -106,6 +162,14 @@
           "es": [
             "Localización",
             "Rastreo"
+          ],
+          "ko": [
+            "위치 서비스",
+            "추적"
+          ],
+          "vi": [
+            "Dịch vụ định vị",
+            "Theo dõi"
           ]
         }
       },
@@ -118,11 +182,19 @@
             ],
             "es": [
               "General"
+            ],
+            "ko": [
+              "일반"
+            ],
+            "vi": [
+              "Cài đặt chung"
             ]
           },
           "hint": {
             "en": "That's General. Tap the back arrow at the top left, then look for {label}.",
-            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+            "es": "Eso es General. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 일반이에요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Cài đặt chung. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
           }
         },
         {
@@ -133,11 +205,19 @@
             ],
             "es": [
               "Bluetooth"
+            ],
+            "ko": [
+              "Bluetooth"
+            ],
+            "vi": [
+              "Bluetooth"
             ]
           },
           "hint": {
             "en": "That's Bluetooth. Tap the back arrow at the top left, then look for {label}.",
-            "es": "Eso es Bluetooth. Toca la flecha de atrás arriba a la izquierda y busca {label}."
+            "es": "Eso es Bluetooth. Toca la flecha de atrás arriba a la izquierda y busca {label}.",
+            "ko": "그건 Bluetooth예요. 왼쪽 위의 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Bluetooth. Chạm mũi tên quay lại ở góc trên bên trái, rồi tìm {label}."
           }
         }
       ],
@@ -152,17 +232,27 @@
       "id": "camera",
       "label": {
         "en": "Camera",
-        "es": "Cámara"
+        "es": "Cámara",
+        "ko": "카메라",
+        "vi": "Camera"
       },
       "instruction": {
-        "en": "Tap {label}.",
-        "es": "Toca {label}."
+        "en": "Now tap {label}.",
+        "es": "Ahora toca {label}.",
+        "ko": "이제 {label}을(를) 눌러 주세요.",
+        "vi": "Giờ bạn chạm vào {label} nhé."
       },
       "whereToLook": {
-        "en": "It's a few rows down, with a gray camera icon.",
-        "es": "Está unas filas más abajo, con un ícono gris de cámara."
+        "en": "It's a few rows down, next to a gray camera icon.",
+        "es": "Está unas filas más abajo, junto a un ícono gris de cámara.",
+        "ko": "몇 줄 아래에 회색 카메라 아이콘과 함께 있어요.",
+        "vi": "Nó ở vài dòng bên dưới, cạnh biểu tượng camera màu xám."
       },
       "referenceImage": "ref-camera-row",
+      "visual": {
+        "type": "row",
+        "icon": "camera"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -170,6 +260,12 @@
           ],
           "es": [
             "Cámara"
+          ],
+          "ko": [
+            "카메라"
+          ],
+          "vi": [
+            "Camera"
           ]
         },
         "anyOf": {
@@ -177,6 +273,12 @@
             "WhatsApp"
           ],
           "es": [
+            "WhatsApp"
+          ],
+          "ko": [
+            "WhatsApp"
+          ],
+          "vi": [
             "WhatsApp"
           ]
         }
@@ -190,11 +292,19 @@
             ],
             "es": [
               "Fotos"
+            ],
+            "ko": [
+              "사진"
+            ],
+            "vi": [
+              "Ảnh"
             ]
           },
           "hint": {
             "en": "That's Photos. Tap the back arrow, then look for {label}.",
-            "es": "Eso es Fotos. Toca la flecha de atrás y busca {label}."
+            "es": "Eso es Fotos. Toca la flecha de atrás y busca {label}.",
+            "ko": "그건 사진이에요. 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Ảnh. Chạm mũi tên quay lại, rồi tìm {label}."
           }
         },
         {
@@ -205,11 +315,19 @@
             ],
             "es": [
               "Micrófono"
+            ],
+            "ko": [
+              "마이크"
+            ],
+            "vi": [
+              "Micrô"
             ]
           },
           "hint": {
             "en": "That's Microphone. Tap the back arrow, then look for {label}.",
-            "es": "Eso es Micrófono. Toca la flecha de atrás y busca {label}."
+            "es": "Eso es Micrófono. Toca la flecha de atrás y busca {label}.",
+            "ko": "그건 마이크예요. 뒤로 화살표를 누르고 {label}을(를) 찾아보세요.",
+            "vi": "Đó là Micrô. Chạm mũi tên quay lại, rồi tìm {label}."
           }
         }
       ],
@@ -224,17 +342,27 @@
       "id": "whatsapp-switch",
       "label": {
         "en": "WhatsApp",
-        "es": "WhatsApp"
+        "es": "WhatsApp",
+        "ko": "WhatsApp",
+        "vi": "WhatsApp"
       },
       "instruction": {
-        "en": "Turn on the switch next to {label}. It turns green.",
-        "es": "Activa el interruptor al lado de {label}. Se pone verde."
+        "en": "Turn on the switch next to {label}. It turns green when it's on.",
+        "es": "Activa el interruptor junto a {label}. Se pone verde cuando está encendido.",
+        "ko": "{label} 옆의 스위치를 켜 주세요. 켜지면 초록색이 돼요.",
+        "vi": "Bạn bật công tắc cạnh {label}. Khi bật nó sẽ chuyển màu xanh lá."
       },
       "whereToLook": {
-        "en": "The switch is on the right side of the WhatsApp row.",
-        "es": "El interruptor está a la derecha de la fila de WhatsApp."
+        "en": "The switch is on the right end of the WhatsApp row.",
+        "es": "El interruptor está a la derecha de la fila de WhatsApp.",
+        "ko": "스위치는 WhatsApp 줄의 오른쪽 끝에 있어요.",
+        "vi": "Công tắc nằm ở đầu bên phải của dòng WhatsApp."
       },
       "referenceImage": "ref-camera-switch",
+      "visual": {
+        "type": "toggle",
+        "icon": "whatsapp"
+      },
       "arrival": {
         "title": {
           "en": [
@@ -242,6 +370,12 @@
           ],
           "es": [
             "Cámara"
+          ],
+          "ko": [
+            "카메라"
+          ],
+          "vi": [
+            "Camera"
           ]
         },
         "anyOf": {
@@ -249,6 +383,12 @@
             "WhatsApp"
           ],
           "es": [
+            "WhatsApp"
+          ],
+          "ko": [
+            "WhatsApp"
+          ],
+          "vi": [
             "WhatsApp"
           ]
         }

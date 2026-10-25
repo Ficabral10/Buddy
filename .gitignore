@@ -11,3 +11,5 @@ usage-*.jsonl
 # Convex: deployment name and URL for your dev deployment (made by `npx convex dev`)
 .env.local
 .env.convex
+backend/.ocr-bin/
+.gstack/

@@ -1,7 +1,7 @@
 // "Let Lola look": when the on-device reader can't place a screenshot, the user can choose to
 // send THAT ONE screenshot to Claude. Claude may only point at labels from the curated library
 // (or say "go back"); code checks the reply before she hears it. The image is not stored.
-import { baseLang, normalize } from './text.js';
+import { appLang, normalize, LANG_NAMES } from './text.js';
 import { callClaude, DEFAULT_MODEL } from './agent.js';
 import { labelFor, instructionFor } from './library.js';
 
@@ -24,10 +24,12 @@ const TOOL = {
 const BACK = {
   es: 'Toca la flecha de atrás, arriba a la izquierda.',
   en: 'Tap the back arrow at the top left.',
+  ko: '왼쪽 위의 뒤로 화살표를 눌러 주세요.',
+  vi: 'Bạn chạm mũi tên quay lại ở góc trên bên trái.',
 };
 
 export async function screenHelp(req, { library, apiKey, model = DEFAULT_MODEL, claude = callClaude, log = () => {} }) {
-  const lang = baseLang(req.userLanguage) === 'es' ? 'es' : 'en';
+  const lang = appLang(req.userLanguage);
   const task = library.tasks[req.taskId];
   const stepIndex = task?.steps.findIndex((s) => s.id === req.stepId) ?? -1;
   if (!task || stepIndex < 0) return { ok: false, error: 'unknown task or step' };
@@ -51,7 +53,7 @@ export async function screenHelp(req, { library, apiKey, model = DEFAULT_MODEL, 
         'You help an older adult on their own iPhone. You see one screenshot. They do every tap.',
         `Task: ${task.title.en}. Steps, in order, with the exact on-screen labels:\n${list}`,
         `Say what single thing to tap next. "tap" must be one of: ${allowed.map((a) => `"${a}"`).join(', ')}, or "BACK" if they are on a screen that is not on the path.`,
-        `Write "say" in ${lang === 'es' ? 'Spanish' : 'English'}, calm and short, describing where on the screen it is (top, middle, a few rows down).`,
+        `Write "say" in ${LANG_NAMES[lang]}, calm and short, describing where on the screen it is (top, middle, a few rows down).`,
         'Never mention or read out anything else visible on the screen (messages, names, numbers). Never ask for passwords or codes.',
         'Call screen_help exactly once.',
       ].join('\n'),

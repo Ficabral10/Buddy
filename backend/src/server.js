@@ -1,22 +1,23 @@
 // Minimal HTTP server (no dependencies). Endpoints:
 //   GET  /health
 //   GET  /library            -> the curated task library
-//   POST /agent              -> Claude picks/rewords steps (with guardrails)
+//   POST /agent              -> Claude picks/rewords steps (with guardrails), or answers from the web
 //   POST /tts                -> Cartesia audio (mp3) for one sentence
 // Keys come from environment variables only. See ../.env.example.
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadLibrary } from './library.js';
+import { loadLibrary, LIBRARY_DIR } from './library.js';
 import { validateLibrary } from './validate.js';
 import { runAgent, DEFAULT_MODEL } from './agent.js';
 import { createTts } from './tts.js';
 import { checkScam } from './scam.js';
 import { screenHelp } from './vision.js';
+import { LANGS as APP_LANGS } from './text.js';
 
 const MAX_BODY = 16 * 1024;
-const LANGS = new Set(['en', 'es', 'zh']);
+const LANGS = new Set([...APP_LANGS, 'zh']);
 const EVENTS = new Set(['request', 'lost', 'question']);
 
 export function createRateLimiter({ perMinute = 60, now = () => Date.now() } = {}) {
@@ -51,16 +52,19 @@ function readJson(req, maxBody = MAX_BODY) {
 }
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 
-/** Serves the web app from /web and the shared detector modules from src/. No directory escapes. */
-async function serveStatic(pathname, res, webDir, srcDir) {
+/** Serves the web app from /web, step screenshots from library/screens, and the shared modules from src/. No directory escapes. */
+async function serveStatic(pathname, res, webDir, srcDir, screensDir) {
   let file = null;
   if (pathname === '/' || pathname === '/index.html') file = path.join(webDir, 'index.html');
-  else if (pathname === '/lib/detector.js' || pathname === '/lib/text.js') file = path.join(srcDir, path.basename(pathname));
+  else if (['/lib/detector.js', '/lib/text.js', '/lib/versions.js'].includes(pathname)) file = path.join(srcDir, path.basename(pathname));
   else if (pathname.startsWith('/app/')) {
     const candidate = path.resolve(webDir, `.${pathname.slice(4)}`);
     if (candidate.startsWith(webDir + path.sep)) file = candidate;
+  } else if (pathname.startsWith('/screens/')) {
+    const candidate = path.resolve(screensDir, `.${pathname.slice(8)}`);
+    if (candidate.startsWith(screensDir + path.sep) && /\.(jpg|png)$/.test(candidate)) file = candidate;
   }
   if (!file) return false;
   try {
@@ -95,7 +99,7 @@ export function createServer({ env = process.env, library = loadLibrary(), claud
     try {
       const url = new URL(req.url, 'http://localhost');
       if (url.pathname === '/health') return send(res, 200, { ok: true, libraryVersion: library.libraryVersion });
-      if (req.method === 'GET' && (await serveStatic(url.pathname, res, webDir, here))) return;
+      if (req.method === 'GET' && (await serveStatic(url.pathname, res, webDir, here, path.join(LIBRARY_DIR, 'screens')))) return;
 
       // A shared token is not real authentication; it only keeps casual traffic off a demo server.
       if (clientToken && req.headers['x-buddy-client'] !== clientToken) return send(res, 401, { error: 'unauthorized' });

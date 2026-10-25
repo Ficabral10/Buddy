@@ -47,6 +47,13 @@ final class BuddyCoreTests: XCTestCase {
         XCTAssertEqual(task.steps.last?.confirmWithUser, true)
     }
 
+    func testStepsFollowIOSVersion() {
+        let textSize = library.tasks["text-size"]!
+        XCTAssertEqual(textSize.forIOS("26.1").steps.map(\.id), ["open-settings", "display", "text-size-row", "slider"])
+        XCTAssertEqual(textSize.forIOS("27.0").steps.map(\.id), ["open-settings", "appearance", "text-size-row", "slider"])
+        XCTAssertEqual(task.forIOS("17.4").steps.count, task.steps.count) // no version-specific steps
+    }
+
     func testLabelFollowsPhoneLanguageInstructionFollowsUser() {
         let privacy = task.steps[1]
         XCTAssertEqual(privacy.displayLabel(phoneLanguage: "es-US"), LabelChoice(label: "Privacidad y seguridad", uncertain: false))

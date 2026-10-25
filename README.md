@@ -36,6 +36,9 @@ No login: sessions use an anonymous UUID. Production needs real auth.
 | Screenshot reading on the phone | Yes (Tesseract.js, on device) | Yes (Apple Vision) |
 | Notices the next screen live | No: asks "¿Ya lo hiciste?" when she comes back, or reads a screenshot | Yes (ReplayKit broadcast) |
 | Floating card over Settings | Experimental (Picture in Picture from a canvas) | Yes (PiP), to verify |
+| Languages | Spanish, English, Korean, Vietnamese | Spanish, English |
+| Questions outside the library | Answered from a web search, step by step, marked "from the web" with sources | "Not sure" + call family |
+| Picture of what to tap | Drawn with every step, label in the phone's language | Screenshot assets, when added |
 
 Both use the same backend, task library, and step detector.
 
@@ -91,7 +94,7 @@ Claude does the parts where judgment matters: understanding a messy spoken reque
 
 | Risk for the people using it | What we did |
 |---|---|
-| **Wrong or outdated steps.** A wrong instruction to an older user is worse than none. | Steps come from the curated library, never the model's memory. A task ID Claude invents is rejected. A re-explanation that doesn't contain the step's exact on-screen label is replaced with the library text. Labels are flagged `labelsVerified: false` until checked on a real phone; unknown phone languages are flagged in the UI. No match means "I'm not sure" plus the family-call option. |
+| **Wrong or outdated steps.** A wrong instruction to an older user is worse than none. | Library tasks come first, and their steps come from the curated library, never the model's memory. Anything else is answered from a live web search, shown as "from the web" with its sources (web app). A task ID Claude invents is rejected. A re-explanation that doesn't contain the step's exact on-screen label is replaced with the library text. Labels are flagged `labelsVerified: false` until checked on a real phone; unknown phone languages are flagged in the UI. No match means "I'm not sure" plus the family-call option. |
 | **Scams.** Older adults are targeted by people who call and "guide" them through their phone. | Lola never asks for passwords, codes, or card numbers; any reply that mentions them is replaced. If the user says someone called and told them what to do, Lola pauses and suggests calling family first. Banking, account recovery, and security requests go to official channels. These checks are plain code that runs before and after Claude. |
 | **Privacy.** A screen can show messages, photos, and bank apps. | Screenshots are read on the phone and never stored. Screens that look like password, code, or card fields are never read or sent. A screenshot goes to Claude only when she taps "Sí, mírala" for that one image; for the scam check, only the message text she confirms is sent. The usage log is opt-in, counts only, and stays on the phone. |
 | **Speech fails** (accents, noise, tremor). | Typed input everywhere; a tappable task list; big buttons for Repeat, Next, I'm lost, Pause, Stop. |

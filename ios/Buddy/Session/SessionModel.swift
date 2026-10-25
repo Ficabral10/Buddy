@@ -46,7 +46,7 @@ final class SessionModel {
     private var lastWrongTurnAt: [String: Date] = [:]
 
     init(task: HelperTask, confirmLine: String, services: Services, settings: AppSettings) {
-        self.task = task
+        self.task = task.forIOS(UIDevice.current.systemVersion) // menus move between iOS releases
         self.services = services
         self.settings = settings
         self.userLanguage = settings.userLanguage

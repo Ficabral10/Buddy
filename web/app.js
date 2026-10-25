@@ -1,14 +1,18 @@
 // Lola web app: the no-Xcode version. Same library, same detector, same backend as the iOS app.
 // The user does every tap; this page only decides what to say and when.
-import { UI, PHRASES, familyMessage } from './i18n.js';
+import { UI, PHRASES, LANGUAGES, familyMessage } from './i18n.js';
+import { drawVisual } from './visual.js';
 import { Speaker, Listener } from './voice.js';
 import { readScreenshot, readMessageText, toJpegBase64, warmUp } from './ocr.js';
-import { drawCard, floatingSupported, startFloating } from './floating.js';
+import { drawCard, floatingSupported, startFloating, setFloatingControls } from './floating.js';
 import { detect } from '/lib/detector.js';
-import { normalize, baseLang } from '/lib/text.js';
+import { normalize, baseLang, fill } from '/lib/text.js';
+import { forIos, iosFromUserAgent } from '/lib/versions.js';
 
 const $app = document.getElementById('app');
 const PHONE_LANG = navigator.language || 'en';
+// Menus move between iOS releases, so steps can depend on it. `?ios=26` overrides, for testing.
+const IOS = new URLSearchParams(location.search).get('ios') || iosFromUserAgent(navigator.userAgent);
 
 // ---------- Settings (this phone only) ----------
 const store = {
@@ -16,7 +20,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(`lola.${k}`, JSON.stringify(v)); } catch { /* private mode */ } },
 };
 const settings = {
-  lang: store.get('lang', baseLang(PHONE_LANG) === 'es' ? 'es' : 'en'),
+  lang: store.get('lang', LANGUAGES.some((l) => l.code === baseLang(PHONE_LANG)) ? baseLang(PHONE_LANG) : 'en'),
   mode: store.get('mode', 'both'), // both | voice | text
   patience: store.get('patience', 1),
   familyName: store.get('familyName', ''),
@@ -66,11 +70,12 @@ function exportLog() {
 
 // ---------- Voice commands (port of BuddyCore/VoiceCommand.swift) ----------
 const COMMANDS = {
-  stop: ['stop', 'quit', 'para', 'parar', 'detente', 'basta'],
-  pause: ['pause', 'wait', 'pausa', 'espera', 'esperate'],
-  lost: ["i'm lost", 'im lost', 'lost', 'help', 'estoy perdido', 'estoy perdida', 'perdido', 'perdida', 'ayuda', 'no entiendo'],
-  repeat: ['repeat', 'again', 'say it again', 'otra vez', 'repite', 'repitelo', 'de nuevo'],
-  next: ['next', 'done', 'siguiente', 'listo', 'ya'],
+  stop: ['stop', 'quit', 'para', 'parar', 'detente', 'basta', '그만', '그만해', '멈춰', 'dung', 'dung lai', 'thoi'],
+  pause: ['pause', 'wait', 'pausa', 'espera', 'esperate', '잠깐', '잠깐만', '기다려', 'tam dung', 'cho chut', 'doi chut'],
+  lost: ["i'm lost", 'im lost', 'lost', 'help', 'estoy perdido', 'estoy perdida', 'perdido', 'perdida', 'ayuda', 'no entiendo',
+    '잘 모르겠어요', '모르겠어요', '도와줘', '도와주세요', 'toi bi lac', 'bi lac', 'giup toi', 'khong hieu'],
+  repeat: ['repeat', 'again', 'say it again', 'otra vez', 'repite', 'repitelo', 'de nuevo', '다시', '다시 말해 줘', '한 번 더', 'noi lai', 'lap lai'],
+  next: ['next', 'done', 'siguiente', 'listo', 'ya', '다음', '했어요', '됐어요', 'tiep', 'xong', 'xong roi'],
 };
 const clean = (s) => normalize(s).replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
 function parseCommand(text) {
@@ -79,8 +84,8 @@ function parseCommand(text) {
   for (const [cmd, words] of Object.entries(COMMANDS)) if (words.some((w) => clean(w) === c)) return cmd;
   return null;
 }
-const YES = ['si', 'yes', 'yeah', 'claro', 'correcto', 'eso', 'ya'];
-const NO = ['no', 'nope', 'todavia no', 'aun no', 'not yet'];
+const YES = ['si', 'yes', 'yeah', 'claro', 'correcto', 'eso', 'ya', '네', '예', '응', '맞아요', 'co', 'vang', 'da', 'u', 'dung roi'];
+const NO = ['no', 'nope', 'todavia no', 'aun no', 'not yet', '아니요', '아니', '아직', 'khong', 'chua'];
 
 // ---------- Small render helpers ----------
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -135,6 +140,7 @@ function talkButton(onHeard) {
 }
 
 // ---------- Pointing at the button on her screenshot ----------
+const TAP_HERE = { es: 'Toca aquí', en: 'Tap here', ko: '여기를 누르세요', vi: 'Chạm vào đây' };
 const SENSITIVE = ['enter password', 'enter passcode', 'card number', 'cvv', 'security code', 'verification code',
   'introduce la contrasena', 'ingresa tu contrasena', 'ingresa la contrasena', 'ingresa el codigo',
   'numero de tarjeta', 'codigo de seguridad', 'codigo de verificacion'];
@@ -164,9 +170,9 @@ function backRing(lines) {
 }
 
 /** Crop the screenshot around the target and draw a ring + "Toca aquí". Stays in memory only. */
-function cropWithRing(canvas, ring, label) {
-  const W = canvas.width;
-  const H = canvas.height;
+function cropWithRing(canvas, ring, tag = true) {
+  const W = canvas.naturalWidth || canvas.width;
+  const H = canvas.naturalHeight || canvas.height;
   const cropH = Math.round(Math.min(H, W * 0.95));
   const centerY = ring ? (ring.y + ring.h / 2) * H : cropH / 2;
   const top = Math.max(0, Math.min(H - cropH, Math.round(centerY - cropH / 2)));
@@ -192,7 +198,8 @@ function cropWithRing(canvas, ring, label) {
     ctx.roundRect ? ctx.roundRect(x, y, w, h, 18) : ctx.rect(x, y, w, h);
     ctx.stroke();
     ctx.shadowBlur = 0;
-    const tag = `👆 ${settings.lang === 'es' ? 'Toca aquí' : 'Tap here'}`;
+    if (!tag) return out.toDataURL('image/jpeg', 0.85);
+    tag = `👆 ${TAP_HERE[settings.lang] ?? TAP_HERE.en}`;
     ctx.font = `700 ${Math.round(W * 0.05)}px -apple-system, system-ui, sans-serif`;
     const tw = ctx.measureText(tag).width + W * 0.04;
     const ty = y + h + W * 0.015 + W * 0.07 < cropH ? y + h + W * 0.015 : Math.max(0, y - W * 0.085);
@@ -204,14 +211,42 @@ function cropWithRing(canvas, ring, label) {
   return out.toDataURL('image/jpeg', 0.85);
 }
 
+// ---------- Real screenshots of each step (library/screens) ----------
+const refCache = new Map(); // file -> data URL, or a promise while loading
+
+/** The library screenshot for this step in the phone's language, closest to this phone's iOS. */
+function screenFor(task, step) {
+  const lang = baseLang(PHONE_LANG);
+  const major = Number.parseInt(IOS ?? '', 10);
+  const all = (library.screens ?? []).filter((sc) => sc.task === task.id && sc.step === step.id && sc.lang === lang);
+  const dist = (sc) => (Number.isNaN(major) ? -sc.ios : Math.abs(sc.ios - major) - (sc.ios === major ? 1 : 0));
+  return all.sort((p, q) => dist(p) - dist(q))[0] ?? null;
+}
+
+/** Data URL of the cropped, ringed screenshot, or null while it loads (onReady fires once it has). */
+function refPicture(sc, step, onReady) {
+  const hit = refCache.get(sc.file);
+  if (typeof hit === 'string') return hit;
+  if (!hit) {
+    const tag = !['slider', 'swipe'].includes(step.visual?.type);
+    const p = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(cropWithRing(img, sc.box, tag));
+      img.onerror = reject;
+      img.src = `/screens/${sc.file}`;
+    }).then((url) => { refCache.set(sc.file, url); onReady(); }, () => refCache.delete(sc.file));
+    refCache.set(sc.file, p);
+  }
+  return null;
+}
+
 // ---------- Onboarding ----------
 function onboarding(page = 0) {
   const choice = (label, on, attr) => `<button class="choice" aria-pressed="${on}" ${attr}>${esc(label)}</button>`;
   let body = '';
   if (page === 0) {
     body = `<h1>${t().chooseLang}</h1><div class="stack">
-      ${choice('Español', settings.lang === 'es', 'data-lang="es"')}
-      ${choice('English', settings.lang === 'en', 'data-lang="en"')}</div>`;
+      ${LANGUAGES.map((l) => choice(l.name, settings.lang === l.code, `data-lang="${l.code}"`)).join('')}</div>`;
   } else if (page === 1) {
     body = `<h1>${t().howHelp}</h1><div class="stack">
       ${choice(t().talkAndText, settings.mode === 'both', 'data-mode="both"')}
@@ -265,22 +300,28 @@ function home(message = '') {
   updateMascots();
 }
 
+// Same wording as CONFIRM in backend/src/agent.js.
+const CONFIRM = {
+  en: (title) => `Sure, I can help with that. You'd like to: ${title.charAt(0).toLowerCase()}${title.slice(1)}. Is that right?`,
+  es: (title) => `Claro, te ayudo con eso. Quieres: ${title.charAt(0).toLowerCase()}${title.slice(1)}. ¿Es así?`,
+  ko: (title) => `네, 도와드릴게요. '${title}' 맞으세요?`,
+  vi: (title) => `Được, tôi giúp bạn nhé. Bạn muốn: ${title.charAt(0).toLowerCase()}${title.slice(1)}, đúng không?`,
+};
 function confirmLine(task) {
   const title = task.title[settings.lang] ?? task.title.en;
-  return settings.lang === 'es'
-    ? `Quieres: ${title.charAt(0).toLowerCase()}${title.slice(1)}. ¿Es así?`
-    : `You want to: ${title}. Is that right?`;
+  return (CONFIRM[settings.lang] ?? CONFIRM.en)(title);
 }
 
 async function submit(text) {
   const s = String(text ?? '').trim();
   if (!s) return;
   const status = document.getElementById('status');
-  if (status) status.textContent = '…';
+  if (status) status.textContent = t().lookingUp;
   try {
-    const r = await api('/agent', { userLanguage: settings.lang, phoneLanguage: PHONE_LANG, event: 'request', text: s });
+    const r = await api('/agent', { userLanguage: settings.lang, phoneLanguage: PHONE_LANG, iosVersion: IOS ?? undefined, event: 'request', text: s });
     if (r.action === 'start_task' && library.tasks[r.taskId]) return startSession(library.tasks[r.taskId], r.say);
     if (r.action === 'safety') return warning(r.say);
+    if (r.action === 'web_answer') return webAnswerPage(r, s);
     home(r.say);
     speak(r.say);
   } catch {
@@ -307,6 +348,61 @@ function familyButtons(session) {
     document.getElementById('call-family')?.addEventListener('click', () => session?.log('family_call'));
   });
   return `<a id="call-family" class="button" href="facetime:${digits}">📹 ${esc(t().callFamily(settings.familyName || settings.familyPhone))}</a>`;
+}
+
+// ---------- Answers from the web ----------
+function sourcesList(sources) {
+  if (!sources?.length) return '';
+  const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+  return `<details class="sources"><summary>${t().sources}</summary><ul>${sources.map((x) =>
+    `<li><a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a> <span class="muted">${esc(host(x.url))}</span></li>`).join('')}</ul></details>`;
+}
+
+/** Turns a web answer into a task the step-by-step session can walk through. */
+function webTask(r, request) {
+  const lang = settings.lang;
+  const phone = baseLang(PHONE_LANG);
+  return {
+    id: 'web',
+    fromWeb: true,
+    title: { [lang]: r.title || request, en: r.title || request },
+    sources: r.sources ?? [],
+    finishAction: 'none',
+    steps: r.steps.map((st, k) => ({
+      id: `web-${k}`,
+      label: { [phone]: st.label, en: st.label },
+      instruction: { [lang]: st.text, en: st.text },
+      whereToLook: { [lang]: st.where || st.text, en: st.where || st.text },
+      visual: st.visual,
+      private: st.private,
+      hintTimingSec: { repeat: 15, describe: 30, picture: 45 },
+      confirmWithUser: false,
+      wrongTurns: [],
+    })),
+  };
+}
+
+function webAnswerPage(r, request) {
+  const hasSteps = r.steps?.length > 0;
+  $app.innerHTML = `<div class="top"><button id="back" style="width:auto">← ${t().back}</button><div class="title"></div></div>
+    ${mascot()}
+    <section class="card" aria-live="polite">
+      <p class="badge">🌐 ${t().fromWeb}</p>
+      ${settings.mode === 'voice' ? '' : `<p class="say">${esc(r.say)}</p>`}
+      ${hasSteps ? `<ol class="steps-preview">${r.steps.map((st) => `<li>${esc(st.text)}</li>`).join('')}</ol>` : ''}
+      <p class="privacy">${t().webNote}</p>
+      ${sourcesList(r.sources)}
+    </section>
+    ${hasSteps ? `<button id="go" class="primary">👣 ${t().startSteps}</button>` : talkButton((s) => submit(s))}
+    ${familyButtons()}`;
+  document.getElementById('back').onclick = () => { speaker.stop(); home(); };
+  document.getElementById('go')?.addEventListener('click', () => {
+    current?.dispose();
+    current = new Session(webTask(r, request), '');
+    current.confirm(true);
+  });
+  speak(r.say);
+  updateMascots();
 }
 
 // ---------- "¿Es una estafa?" ----------
@@ -370,8 +466,7 @@ function settingsPage() {
   const hasLog = store.get('usage', []).length > 0;
   $app.innerHTML = `<h1>${t().settings}</h1>
     <h2>${t().language}</h2>
-    <div class="row"><button class="choice" aria-pressed="${settings.lang === 'es'}" data-lang="es">Español</button>
-      <button class="choice" aria-pressed="${settings.lang === 'en'}" data-lang="en">English</button></div>
+    <div class="row">${LANGUAGES.map((l) => `<button class="choice" aria-pressed="${settings.lang === l.code}" data-lang="${l.code}">${l.name}</button>`).join('')}</div>
     <h2>${t().howHelp}</h2>
     <div class="stack">
       <button class="choice" aria-pressed="${settings.mode === 'both'}" data-mode="both">${t().talkAndText}</button>
@@ -413,7 +508,7 @@ function startSession(task, line) {
 
 class Session {
   constructor(task, line) {
-    this.task = task;
+    this.task = task.fromWeb ? task : forIos(task, IOS);
     this.id = crypto.randomUUID?.() ?? String(Date.now());
     this.lang = settings.lang;
     this.phase = 'confirm'; // confirm | guiding | returned | askScreen | askCheck | finished | stopped
@@ -447,17 +542,34 @@ class Session {
   }
   instruction(step = this.step) {
     if (!step) return '';
-    const tpl = step.instruction[this.lang] ?? step.instruction.en;
-    return tpl.replaceAll('{label}', this.label(step));
+    return fill(step.instruction[this.lang] ?? step.instruction.en, this.label(step));
   }
   whereToLook(step = this.step) { return step ? (step.whereToLook[this.lang] ?? step.whereToLook.en) : ''; }
   stepText() { return t().stepOf(Math.min(this.i + 1, this.task.steps.length), this.task.steps.length); }
+
+  /** What to look for: the real screen when the library has one, otherwise a drawing. */
+  picture() {
+    const step = this.step;
+    if (!step || !['guiding', 'returned', 'askScreen', 'askCheck'].includes(this.phase)) return null;
+    const sc = this.task.fromWeb ? null : screenFor(this.task, step);
+    if (sc) {
+      const url = refPicture(sc, step, () => { if (this.step === step) { this.render(); this.float(); } });
+      return url ? { url } : null;
+    }
+    const svg = drawVisual(step.visual, this.label());
+    return svg ? { svg } : null;
+  }
+
+  /** Keep the floating window (Picture in Picture) in step with the screen. */
+  float() {
+    drawCard({ text: this.line, step: this.phase === 'finished' ? '' : this.stepText(), picture: this.picture() });
+  }
 
   say(text) {
     this.line = text;
     this.render();
     speak(text);
-    drawCard({ text, step: this.phase === 'finished' ? '' : this.stepText() });
+    this.float();
   }
 
   // ----- flow -----
@@ -490,6 +602,7 @@ class Session {
   finish() {
     this.phase = 'finished';
     this.log('session_end', { completed: true });
+    if (this.task.fromWeb) { this.say(P().webStepsDone); this.dispose(); return; }
     const offer = this.task.finishAction === 'tell-family' && settings.familyPhone ? ` ${P().offerFamily}` : '';
     this.say(P().finished + offer);
     this.dispose();
@@ -504,6 +617,7 @@ class Session {
 
   next() { if (['guiding', 'returned', 'askScreen', 'askCheck'].includes(this.phase)) this.complete(); }
   repeat() { if (this.phase === 'guiding' || this.phase === 'returned') { this.phase = 'guiding'; this.say(this.instruction()); } }
+  setPaused(on) { if (this.paused !== on) this.togglePause(); }
   togglePause() {
     this.paused = !this.paused;
     if (this.paused) { speaker.stop(); this.say(P().paused); } else { this.shownAt = Date.now(); this.say(this.instruction()); }
@@ -522,15 +636,18 @@ class Session {
     this.phase = 'guiding';
     this.hint = Math.max(this.hint, 2);
     this.log('lost', { step: this.step.id });
+    if (this.task.fromWeb) return this.say(`${this.instruction()} ${this.whereToLook()}`);
     await this.ask('lost', null, `${this.instruction()} ${this.whereToLook()}`);
   }
 
   async ask(event, text, fallback) {
     this.render(true);
     try {
+      const web = this.task.fromWeb;
       const r = await api('/agent', {
-        userLanguage: this.lang, phoneLanguage: PHONE_LANG, event, text,
-        taskId: this.task.id, stepId: this.step?.id,
+        userLanguage: this.lang, phoneLanguage: PHONE_LANG, iosVersion: IOS ?? undefined, event, text,
+        // Web steps aren't in the library; send the question with the step it's about.
+        ...(web ? { text: `${text}\n(Current step: ${this.instruction()})` } : { taskId: this.task.id, stepId: this.step?.id }),
       });
       if (r.action === 'safety') { this.paused = true; this.warn = r.say; }
       this.say(r.say);
@@ -572,8 +689,7 @@ class Session {
   }
 
   hasPicture() {
-    const img = document.getElementById('ref-img');
-    return Boolean(img && img.complete && img.naturalWidth > 0);
+    return Boolean(document.querySelector('.card .visual'));
   }
 
   // ----- web limitation turned into a feature: when she comes back, ask -----
@@ -601,17 +717,19 @@ class Session {
     if (!canvas) return this.say(`${this.instruction()} ${this.whereToLook()}`);
     if (looksSensitive(lines)) return this.say(P().sensitive); // never read or send private screens
 
-    const result = detect({ task: this.task, currentStep: this.i, lines, phoneLanguage: PHONE_LANG });
+    // Web steps have no screen signatures, so only point at the label if it's there.
+    const result = this.task.fromWeb ? { kind: 'none' } : detect({ task: this.task, currentStep: this.i, lines, phoneLanguage: PHONE_LANG });
     if (result.kind === 'none') {
       const ring = findLabel(lines, this.label());
       if (ring) {
         // She's on the right screen: show her exactly where to tap.
-        this.shot = { url: cropWithRing(canvas, ring, this.label()) };
+        this.shot = { url: cropWithRing(canvas, ring) };
         this.phase = 'guiding';
         return this.say(`${P().tapHere} ${this.instruction()}`);
       }
+      if (this.task.fromWeb) return this.say(`${this.instruction()} ${this.whereToLook()}`);
       // Unknown screen: offer to let Claude look at this one screenshot, with her permission.
-      this.shot = { url: cropWithRing(canvas, null) };
+      this.shot = { url: cropWithRing(canvas, null, false) };
       this.look = { canvas, lines };
       this.offerLook = true;
       this.phase = 'guiding';
@@ -620,7 +738,7 @@ class Session {
     this.apply(result);
     if (this.phase === 'finished' || !this.step) return;
     const ring = result.kind === 'wrongTurn' ? backRing(lines) : findLabel(lines, this.label());
-    this.shot = { url: cropWithRing(canvas, ring, result.kind === 'wrongTurn' ? null : this.label()) };
+    this.shot = { url: cropWithRing(canvas, ring, result.kind !== 'wrongTurn') };
     this.render();
   }
 
@@ -633,7 +751,7 @@ class Session {
     this.render(true);
     try {
       const r = await api('/vision', {
-        image: toJpegBase64(look.canvas), userLanguage: this.lang, phoneLanguage: PHONE_LANG,
+        image: toJpegBase64(look.canvas), userLanguage: this.lang, phoneLanguage: PHONE_LANG, iosVersion: IOS ?? undefined,
         taskId: this.task.id, stepId: this.step.id,
       });
       if (r.stepId) {
@@ -641,7 +759,7 @@ class Session {
         if (k > this.i) { this.log('step_done', { step: this.step.id }); this.i = k; }
       }
       const ring = r.back ? backRing(look.lines) : r.target ? findLabel(look.lines, r.target) : null;
-      this.shot = { url: cropWithRing(look.canvas, ring, r.back ? null : r.target) };
+      this.shot = { url: cropWithRing(look.canvas, ring, !r.back) };
       this.say(r.say);
     } catch {
       this.say(`${this.instruction()} ${this.whereToLook()}`);
@@ -653,9 +771,13 @@ class Session {
     if (!settings.familyPhone) return null;
     const name = settings.familyName || '';
     const title = this.task.title[this.lang] ?? this.task.title.en;
-    const msg = this.lang === 'es'
-      ? `${name ? `${name}, ` : ''}¿me ayudas? Estoy tratando de: ${title}. Voy en el ${this.stepText().toLowerCase()}: "${this.instruction()}"`
-      : `${name ? `${name}, ` : ''}can you help me? I'm trying to: ${title}. I'm on ${this.stepText().toLowerCase()}: "${this.instruction()}"`;
+    const step = this.stepText();
+    const msg = {
+      es: `${name ? `${name}, ` : ''}¿me ayudas? Estoy tratando de: ${title}. Voy en el ${step.toLowerCase()}: "${this.instruction()}"`,
+      en: `${name ? `${name}, ` : ''}can you help me? I'm trying to: ${title}. I'm on ${step.toLowerCase()}: "${this.instruction()}"`,
+      ko: `${name ? `${name}, ` : ''}좀 도와줄래? '${title}' 하는 중인데 ${step}에서 막혔어: "${this.instruction()}"`,
+      vi: `${name ? `${name} ơi, ` : ''}giúp mình với? Mình đang: ${title}. Đang ở ${step.toLowerCase()}: "${this.instruction()}"`,
+    }[this.lang] ?? '';
     return `https://wa.me/${settings.familyPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -668,7 +790,7 @@ class Session {
         const wt = this.step.wrongTurns.find((w) => w.id === r.wrongTurnId);
         this.log('wrong_turn', { step: this.step.id });
         this.phase = 'guiding';
-        return this.say((wt.hint[this.lang] ?? wt.hint.en).replaceAll('{label}', this.label()));
+        return this.say(fill(wt.hint[this.lang] ?? wt.hint.en, this.label()));
       }
       case 'unsure': this.phase = 'askScreen'; return this.say(P().confirmScreen);
       default:
@@ -684,8 +806,12 @@ class Session {
     const progress = Array.from({ length: total }, (_, k) => `<span class="${k < this.i || this.phase === 'finished' ? 'done' : ''}"></span>`).join('');
     const guiding = ['guiding', 'returned', 'askScreen', 'askCheck'].includes(this.phase);
     const showLabel = guiding && this.line.includes(this.label());
-    const picture = guiding && this.hint >= 3 && this.step?.referenceImage
-      ? `<img id="ref-img" src="/app/img/${this.step.referenceImage}.png" alt="" onerror="this.remove()">` : '';
+    // What to look for, shown from the start: the real screen with a ring, or a drawing labeled
+    // the way this phone shows it.
+    const pic = guiding ? this.picture() : null;
+    const picture = pic?.url ? `<img class="visual ref" src="${pic.url}" alt="${esc(this.label())}">` : pic?.svg ?? '';
+    const privateNote = guiding && this.step?.private ? `<p class="privacy">🔒 ${t().privateStep}</p>` : '';
+    const webBits = this.task.fromWeb ? `<p class="badge">🌐 ${t().fromWeb}</p>` : '';
     const text = settings.mode === 'voice' ? '' : `<p class="say">${showLabel ? withLabel(this.line, this.label()) : esc(this.line)}</p>`;
 
     let controls = '';
@@ -716,11 +842,12 @@ class Session {
         ${this.phase === 'finished' || this.phase === 'stopped' ? '' : `<button class="danger" data-a="stop">${t().stop}</button>`}</div>
       ${this.warn ? `<div class="warn" role="alert"><strong>⚠️ ${t().safety}</strong><p>${esc(this.warn)}</p></div>` : ''}
       <section class="card" aria-live="polite">
-        ${text}${picture}
+        ${webBits}${text}${picture}${privateNote}
         ${guiding && this.shot ? `<img class="shot" src="${this.shot.url}" alt="${esc(this.instruction())}">` : ''}
         ${this.offerLook ? `<div class="look"><p>${t().lookNote}</p>
           <div class="row"><button class="primary" data-a="lookYes">👀 ${t().lookYes}</button><button data-a="lookNo">${t().no}</button></div></div>` : ''}
         ${guiding || this.phase === 'finished' ? `<div class="progress" aria-hidden="true">${progress}</div>` : ''}
+        ${this.task.fromWeb && (this.phase === 'finished' || guiding) ? sourcesList(this.task.sources) : ''}
         ${this.reading ? `<p class="step">${t().reading}</p>` : ''}${thinking ? '<p class="step">…</p>' : ''}
       </section>
       ${guiding || this.phase === 'confirm' ? talkButton((s) => this.heard(s)) : ''}
@@ -730,7 +857,15 @@ class Session {
       yes: () => this.answer(true), no: () => this.answer(false), repeat: () => this.repeat(), next: () => this.next(),
       lost: () => this.lost(), pause: () => this.togglePause(), stop: () => this.end(false),
       close: () => { current = null; home(); },
-      float: async () => { drawCard({ text: this.line, step: this.stepText() }); await startFloating(); },
+      float: async () => {
+        this.float();
+        setFloatingControls({
+          next: () => current === this && this.next(),
+          repeat: () => current === this && this.repeat(),
+          pause: (on) => current === this && this.setPaused(on),
+        });
+        await startFloating();
+      },
       wa: () => {},
       lookYes: () => this.lookWithClaude(true), lookNo: () => this.lookWithClaude(false),
       askFamily: () => this.log('family_call'),

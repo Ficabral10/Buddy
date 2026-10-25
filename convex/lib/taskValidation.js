@@ -62,6 +62,7 @@ export function fromLibraryFile(file) {
     labelsVerified: Boolean(file.labelsVerified?.en && file.labelsVerified?.es),
     steps: file.steps.map((s) => ({
       id: s.id,
+      ...(s.iosVersions ? { iosVersions: s.iosVersions } : {}),
       label: s.label,
       instruction: s.instruction,
       whereToLook: s.whereToLook,

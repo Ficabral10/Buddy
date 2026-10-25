@@ -11,7 +11,7 @@ language. Target users: older adults and non-English speakers. Built for Cal Hac
 4. Don't hover: wait before hints, then escalate (repeat, where to look, picture). See `HintEscalation`.
 5. The user is in charge: one tap or word (repeat, next, I'm lost, pause, stop) controls the helper.
 6. Private by default: on-device text recognition, frames discarded, no screen text in logs, nothing leaves the device without saying so.
-7. Accuracy over cleverness: instructions come from `library/`, never from the model's memory. No match means "not sure" plus the family option.
+7. Accuracy over cleverness: library tasks come first and always come from `library/`, never from the model's memory. When no library task fits, the web app answers from a live web search (`backend/src/websearch.js`), broken into one-action steps, always labeled "from the web" with its sources. If the search fails, say "not sure" plus the family option. Safety guardrails apply to both.
 
 ## Platform limits (do not work around)
 - No overlays, pointing, UI-tree reading, or tap injection in other apps. No private APIs or `App-Prefs:` links; only `UIApplication.openSettingsURLString`.
@@ -27,9 +27,11 @@ language. Target users: older adults and non-English speakers. Built for Cal Hac
 - Usage log: counts only, opt-in, exported by the user. Never invent results or interview quotes.
 
 ## Layout
-- `library/` task flows (source of truth) + `SCHEMA.md`; `fixtures/screens/` detector fixtures.
+- `library/` task flows (source of truth) + `SCHEMA.md`; `library/screens/` real step screenshots (`npm run add-screen`); `fixtures/screens/` detector fixtures.
 - `convex/` primary backend for the iOS app (schema, sessions, `ai:chooseTask`, `speech:*`, 7-day cron). See docs/BACKEND.md. Tests: `npm run test:convex`.
-- `backend/` Node 20+, no dependencies (serves the web app; dev fallback): `/library`, `/agent` (Claude + guardrails), `/tts` (Cartesia). `src/detector.js` is the reference detector.
+- `backend/` Node 20+, no dependencies (serves the web app; dev fallback): `/library`, `/agent` (Claude + guardrails, web answers), `/tts` (Cartesia). `src/detector.js` is the reference detector.
+- Languages: `en`, `es`, `ko`, `vi` in the library, backend and web app (`LANGS` in `backend/src/text.js`). The iOS app and Convex still cover `en`/`es` only.
+- Step pictures: `visual` on each library step, drawn by `web/visual.js` (types/icons listed in `backend/src/validate.js`).
 - `ios/` XcodeGen project: `Buddy/` app, `BroadcastExtension/`, `Shared/` (Vision OCR), `Packages/BuddyCore/` (pure Swift logic + tests).
 - `docs/` spike plan, demo script, Devpost, tracks, production path, checklists.
 

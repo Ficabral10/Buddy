@@ -7,6 +7,8 @@ const perLangList = v.record(v.string(), v.array(v.string()));
 
 export const stepValidator = v.object({
   id: v.string(),
+  // iOS versions this step applies to, when a menu moved between releases (e.g. {min: "27.0"}).
+  iosVersions: v.optional(v.object({ min: v.optional(v.string()), max: v.optional(v.string()) })),
   label: perLang, // exact on-screen label, per phone UI language
   instruction: perLang, // per user language; contains {label}
   whereToLook: perLang,

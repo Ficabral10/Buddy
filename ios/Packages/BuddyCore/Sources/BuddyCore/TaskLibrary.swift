@@ -39,8 +39,32 @@ public struct HintTiming: Codable, Sendable {
     }
 }
 
+/// iOS versions a step applies to, e.g. {"min": "27.0"}. Either end may be missing.
+public struct VersionRange: Codable, Sendable, Equatable {
+    public let min: String?
+    public let max: String?
+    public init(min: String? = nil, max: String? = nil) { self.min = min; self.max = max }
+
+    /// "27.1" -> [27, 1]; nil when unreadable.
+    static func parse(_ v: String?) -> [Int]? {
+        guard let v, let major = Int(v.split(separator: ".").first ?? "") else { return nil }
+        let parts = v.split(separator: ".")
+        return [major, parts.count > 1 ? Int(parts[1]) ?? 0 : 0]
+    }
+
+    /// Both ends included. An unreadable version matches every range.
+    public func contains(_ version: String) -> Bool {
+        guard let v = Self.parse(version) else { return true }
+        if let lo = Self.parse(min), v.lexicographicallyPrecedes(lo) { return false }
+        if let hi = Self.parse(max), hi.lexicographicallyPrecedes(v) { return false }
+        return true
+    }
+}
+
 public struct Step: Codable, Sendable, Identifiable {
     public let id: String
+    /// Set when a menu moved between iOS releases; nil means every version.
+    public let iosVersions: VersionRange?
     public let label: PerLanguage<String>
     public let instruction: PerLanguage<String>
     public let whereToLook: PerLanguage<String>
@@ -122,5 +146,13 @@ public extension Step {
 public extension HelperTask {
     func titleText(userLanguage: String) -> String {
         title[TextNorm.baseLanguage(userLanguage)] ?? title["en"] ?? id
+    }
+
+    /// The task with only the steps for this iOS version (e.g. `UIDevice.current.systemVersion`).
+    /// Same rule as backend/src/versions.js.
+    func forIOS(_ version: String) -> HelperTask {
+        HelperTask(id: id, taskVersion: taskVersion, title: title, description: description,
+                   exampleRequests: exampleRequests, finishAction: finishAction,
+                   steps: steps.filter { $0.iosVersions?.contains(version) ?? true })
     }
 }

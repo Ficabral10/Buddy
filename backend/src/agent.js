@@ -1,15 +1,16 @@
 // The agent: Claude chooses a task from the curated library, rewords steps in the user's
-// language, and handles "I'm lost" and off-script questions. Guardrails around it make sure
-// every instruction still comes from the library.
-import { baseLang, normalize } from './text.js';
+// language, and handles "I'm lost" and off-script questions. Guardrails make sure library
+// steps keep their exact labels. When no library task fits, the request goes to a web search
+// (websearch.js), and the app marks that answer "from the web".
+import { appLang, baseLang, normalize, LANG_NAMES } from './text.js';
 import { instructionFor, labelFor, taskCatalog } from './library.js';
 import { screenUserText, replyMentionsSecrets, message } from './safety.js';
+import { webAnswer } from './websearch.js';
 
 export const DEFAULT_MODEL = 'claude-haiku-5-5';
 const MAX_SAY_CHARS = 280;
 const MAX_TURNS = 4;
 
-const LANG_NAMES = { en: 'English', es: 'Spanish', zh: 'Mandarin Chinese' };
 
 const TOOLS = [
   {
@@ -40,7 +41,7 @@ const TOOLS = [
           type: 'string',
           enum: ['start_task', 'clarify', 'not_supported', 'reexplain', 'answer'],
           description:
-            'start_task: the request matches a library task (say restates it in one sentence and asks to confirm). clarify: ask one short question. not_supported: no task fits. reexplain: re-explain the current step. answer: brief reply to a side question.',
+            'start_task: the request matches a library task (say restates it in one sentence and asks to confirm). clarify: ask one short question. not_supported: no library task fits (the app then looks it up on the web). reexplain: re-explain the current step. answer: brief reply to a side question.',
         },
         task_id: { type: 'string', description: 'Required for start_task and reexplain.' },
         say: { type: 'string', description: "What the mascot says aloud, in the user's language. One or two short sentences." },
@@ -51,15 +52,15 @@ const TOOLS = [
 ];
 
 function systemPrompt(req) {
-  const ul = LANG_NAMES[baseLang(req.userLanguage)] ?? 'English';
+  const ul = LANG_NAMES[appLang(req.userLanguage)];
   const pl = LANG_NAMES[baseLang(req.phoneLanguage)] ?? 'English';
   return [
-    `You are the voice of a calm, capable helper inside an iPhone app. You help older adults and people with limited English do tasks on their own phone. The person does every tap; you never do anything for them.`,
-    `Speak ${ul}. Their phone's menus are in ${pl}: when you name a button or row, use the exact label from get_step, word for word, in quotes.`,
+    `You are the voice of a warm, patient friend inside an iPhone app. You help older adults and people with limited English do things on their own phone. The person does every tap; you never do anything for them.`,
+    `Speak ${ul} the way a kind neighbor sitting next to them would: everyday words, contractions, short sentences, a little warmth ("No problem", "Let's do it together"). Vary your wording; don't sound like a recording. Their phone's menus are in ${pl}: when you name a button or row, use the exact label from get_step, word for word, in quotes.`,
     `Rules:`,
-    `- Only tasks returned by lookup_task exist. Never describe iPhone steps from memory. If nothing fits, use not_supported.`,
-    `- One action per reply. Short, plain, spoken-friendly sentences. No lists, no emoji, no markdown.`,
-    `- Not a teacher or cheerleader: no lessons, quizzes, or praise beyond a word or two.`,
+    `- For phone tasks, check lookup_task first. Library steps are checked, so prefer them. Never describe library steps from memory. If no library task fits, use not_supported: the app will look it up on the web for them.`,
+    `- One action per reply. Short, spoken-friendly sentences. No lists, no emoji, no markdown.`,
+    `- Not a teacher or cheerleader: no lessons, quizzes, or gushing praise.`,
     `- Never ask for passwords, codes, card numbers, or personal details. Account recovery, banking, and security problems go to Apple or the bank.`,
     `- If someone else seems to be directing them, tell them to pause and offer to call a family member.`,
     `- Always finish by calling respond.`,
@@ -99,7 +100,7 @@ function runTool(name, input, library, req) {
 }
 
 /** Calls the Anthropic Messages API. Injected so tests can replace it. */
-export async function callClaude({ system, messages, tools, model, apiKey, fetchImpl = fetch }) {
+export async function callClaude({ system, messages, tools, model, apiKey, maxTokens = 600, timeoutMs = 15000, fetchImpl = fetch }) {
   const res = await fetchImpl('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -107,8 +108,8 @@ export async function callClaude({ system, messages, tools, model, apiKey, fetch
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
     },
-    body: JSON.stringify({ model, max_tokens: 600, system, tools, messages }),
-    signal: AbortSignal.timeout(15000),
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, tools, messages }),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 300)}`);
   return res.json();
@@ -129,29 +130,35 @@ function matchTaskByExamples(library, text) {
   return best?.task ?? null;
 }
 
-const CONFIRM = {
-  en: (title) => `You want to: ${title}. Is that right?`,
-  es: (title) => `Quieres: ${title.charAt(0).toLowerCase()}${title.slice(1)}. ¿Es así?`,
+export const CONFIRM = {
+  en: (title) => `Sure, I can help with that. You'd like to: ${title.charAt(0).toLowerCase()}${title.slice(1)}. Is that right?`,
+  es: (title) => `Claro, te ayudo con eso. Quieres: ${title.charAt(0).toLowerCase()}${title.slice(1)}. ¿Es así?`,
+  ko: (title) => `네, 도와드릴게요. '${title}' 맞으세요?`,
+  vi: (title) => `Được, tôi giúp bạn nhé. Bạn muốn: ${title.charAt(0).toLowerCase()}${title.slice(1)}, đúng không?`,
 };
 const NOT_SURE = {
-  en: "I'm not sure I can help with that one yet. Would you like to call a family member?",
-  es: 'Todavía no estoy seguro de poder ayudarte con eso. ¿Quieres llamar a un familiar?',
+  en: "Hmm, I'm not sure about that one yet. Would you like to call someone in your family?",
+  es: 'Mmm, de eso todavía no estoy seguro. ¿Quieres llamar a alguien de tu familia?',
+  ko: '음, 그건 아직 잘 모르겠어요. 가족에게 전화해 볼까요?',
+  vi: 'Ừm, việc này tôi chưa chắc lắm. Bạn có muốn gọi cho người nhà không?',
 };
 const CLARIFY = {
-  en: 'Tell me a little more. Which app is it, and what is not working?',
-  es: 'Cuéntame un poco más. ¿Qué aplicación es y qué no funciona?',
+  en: "Tell me a little more. Which app is it, and what's not working?",
+  es: 'Cuéntame un poquito más. ¿Qué aplicación es y qué no funciona?',
+  ko: '조금만 더 알려 주세요. 어떤 앱인데, 뭐가 안 되나요?',
+  vi: 'Bạn kể thêm chút nhé. Đó là ứng dụng nào, và cái gì không chạy?',
 };
 
 function libraryReexplain(library, req) {
   const task = library.tasks[req.taskId];
   const step = task?.steps.find((s) => s.id === req.stepId);
   if (!step) return null;
-  const ul = baseLang(req.userLanguage);
+  const ul = appLang(req.userLanguage);
   return `${instructionFor(step, req.userLanguage, req.phoneLanguage)} ${step.whereToLook[ul] ?? step.whereToLook.en}`;
 }
 
 export function fallbackReply(library, req) {
-  const ul = baseLang(req.userLanguage);
+  const ul = appLang(req.userLanguage);
   if (req.event === 'lost' || req.event === 'question') {
     const say = libraryReexplain(library, req);
     if (say) return { action: 'reexplain', taskId: req.taskId, say, source: 'library' };
@@ -188,7 +195,17 @@ export function checkReply(reply, library, req) {
   return { ok: true };
 }
 
-export async function runAgent(req, { library, apiKey, model = DEFAULT_MODEL, claude = callClaude, log = () => {} }) {
+export async function runAgent(req, opts) {
+  const reply = await libraryAgent(req, opts);
+  // No library task fits a new request: look it up on the web instead of giving up.
+  if (reply.action === 'not_supported' && req.event === 'request') {
+    const web = await (opts.web ?? webAnswer)(req, opts);
+    if (web) return web;
+  }
+  return reply;
+}
+
+async function libraryAgent(req, { library, apiKey, model = DEFAULT_MODEL, claude = callClaude, log = () => {} }) {
   const pre = screenUserText(req.text, req.userLanguage);
   if (pre) return { action: 'safety', say: pre.say, source: 'guardrail', guardrail: pre.kind };
   if (!apiKey) return { ...fallbackReply(library, req), note: 'no-api-key' };

@@ -1,6 +1,25 @@
 // Speaking (Cartesia through our backend, with the browser's voice as a fallback) and
 // listening (the browser's speech recognition). iOS Safari only plays audio and opens the
 // microphone after a tap, so the first tap anywhere calls unlockAudio().
+import { localeFor } from './i18n.js';
+
+// Device voices, best first: Apple's downloaded Premium/Enhanced voices sound far more natural
+// than the default compact ones. People can add them in Settings > Accessibility > Spoken Content.
+const QUALITY = [/premium/i, /enhanced|mejorad|향상|nâng cao/i, /siri/i, /google|natural|neural/i];
+function bestVoice(locale) {
+  const all = 'speechSynthesis' in window ? speechSynthesis.getVoices() : [];
+  const lang = locale.slice(0, 2);
+  const exact = all.filter((v) => v.lang.replace('_', '-') === locale);
+  const same = exact.length ? exact : all.filter((v) => v.lang.toLowerCase().startsWith(lang));
+  if (!same.length) return null;
+  const score = (v) => {
+    const i = QUALITY.findIndex((re) => re.test(`${v.name} ${v.voiceURI}`));
+    return (i < 0 ? QUALITY.length : i) * 2 + (v.localService ? 0 : 1);
+  };
+  return [...same].sort((a, b) => score(a) - score(b))[0];
+}
+// Some browsers load the voice list lazily; asking once early starts that.
+if ('speechSynthesis' in window) speechSynthesis.getVoices();
 
 const SILENT_WAV =
   'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -74,8 +93,12 @@ export class Speaker {
     if (!('speechSynthesis' in window)) return this.#set(false);
     this.source = 'browser';
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang === 'es' ? 'es-MX' : 'en-US';
-    u.rate = 0.9;
+    u.lang = localeFor(lang);
+    const voice = bestVoice(u.lang);
+    if (voice) u.voice = voice;
+    // A touch slower than default, natural pitch: calmer without sounding drawn out.
+    u.rate = 0.92;
+    u.pitch = 1;
     u.onend = () => this.#set(false);
     u.onerror = () => this.#set(false);
     speechSynthesis.speak(u);
@@ -99,7 +122,7 @@ export class Listener {
     if (!this.supported) return onError('unsupported');
     this.stop(true);
     const rec = new this.SR();
-    rec.lang = lang === 'es' ? 'es-MX' : 'en-US';
+    rec.lang = localeFor(lang);
     rec.interimResults = true;
     rec.continuous = false;
     rec.maxAlternatives = 1;
