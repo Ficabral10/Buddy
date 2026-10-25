@@ -13,3 +13,4 @@ usage-*.jsonl
 .env.convex
 backend/.ocr-bin/
 .gstack/
+ios/build/

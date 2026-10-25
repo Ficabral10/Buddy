@@ -1,48 +1,70 @@
-# Devpost draft
+# Devpost submission (paste-ready)
 
-**Name:** Lola
-**Tagline:** A calm voice that helps you use your own iPhone, in your language. You do every tap.
+**Project name:** Lola
+**Tagline:** A calm voice that walks older adults through their own iPhone, in their language, and catches scams. They do every tap.
+**Try it out:** https://github.com/Ficabral10/Buddy
+**Built with:** claude, anthropic, cartesia, convex, javascript, node.js, swift, swiftui, tesseract.js, replaykit, vision
+
+---
 
 ## Inspiration
-Many Spanish-speaking grandparents in the US depend on a son, daughter, or grandchild every time
-their iPhone needs a setting changed. Settings are nested, full of jargon, and in English; help
-videos can't see what's on your screen. The person who helps isn't always free, and asking again
-and again is hard on both sides. We wanted something that sits next to you like a patient friend
-and lets you do it yourself.
+Millions of older adults in the US who speak Spanish, Korean or Vietnamese depend on a son,
+daughter or grandchild every time their iPhone needs a setting changed. Settings are buried and
+usually in English, help videos can't see their screen, and asking again and again wears on both
+sides. They are also the people scammers target most. We wanted a patient helper that sits next to
+you, speaks your language, and lets you do it yourself.
 
 ## What it does
-Say the problem in Spanish or English ("WhatsApp no ve mis fotos"). Lola confirms the task, then
-guides one step at a time, naming the exact label on your phone, by voice and in a small floating
-card. If you share your screen, Lola notices when you reach the next screen and moves on; if you
-take a wrong turn, it says so kindly and how to go back. Say "estoy perdida" and it explains
-differently. At the end it offers to open a chat with a family member, and you press Send.
-It never taps anything for you.
+- **Ask out loud, in your language.** "WhatsApp no ve mis fotos." Claude matches the request to a task in our checked library and restates it: "Quieres que WhatsApp vea tus fotos. ¿Es así?"
+- **One step at a time.** Lola names the exact words on *your* phone ("Toca Privacidad y seguridad"), spoken by a Cartesia voice in Spanish, Korean, Vietnamese or English, and shown in large type with a picture of the screen.
+- **"Toca aquí."** iPhones don't let any app point at buttons in Settings, so when you send a screenshot, Lola reads it on the phone, works out where you are, and draws a red ring around the exact button. On a wrong screen it circles the back button and says so.
+- **Help without hovering.** It waits, then repeats, then says where to look. Say "estoy perdida" and it explains another way. Come back from Settings and it asks "¿Ya lo hiciste?"
+- **"¿Es una estafa?"** Screenshot a strange text. Lola reads it on the phone, flags the warning signs (a link, urgency, a payment, a "new number"), and explains in plain words what to do, with a one-tap "Ask Ana".
+- **Family, without dependence.** "Ask Ana for help" opens WhatsApp with a message saying exactly which step you're stuck on. At the end, Lola opens a chat so you can send your grandkids the photos. You always tap Send.
+- **Not in the library?** Claude searches the web and breaks the answer into simple steps, clearly marked "from the web" with sources, under the same safety rules.
 
 ## How we built it
-SwiftUI app and a ReplayKit broadcast extension. The extension samples about one frame per second
-and runs Apple Vision text recognition on the phone; only text lines reach the app, and frames are
-discarded. A step detector matches those lines against "arrival signatures" in a curated, versioned
-task library (screen title plus expected rows, wrong-turn screens, per-language labels). A small
-Node backend holds the API keys: Claude (Haiku 5.5, tool use with `lookup_task`, `get_step`,
-`respond`) picks the task and rewords steps; Cartesia Sonic 3.6 speaks in Spanish and English at a
-slightly slower pace. Code guardrails around Claude reject invented tasks, replies missing the exact
-on-screen label, and any mention of passwords or codes.
+- **Web app** (runs in Safari on the iPhone, added to the Home Screen): vanilla JS, large-type accessible UI, browser speech recognition, Tesseract.js for on-device screenshot reading.
+- **Curated task library:** JSON flows with exact on-screen labels per phone language and per iOS version, wrong-turn screens, hint timing and "arrival signatures" that tell the step detector which screen you're on. A validator runs in CI-style tests.
+- **Claude (Anthropic):** tool use for picking the task (`lookup_task`, `get_step`, `respond`), re-explaining a step when you're lost, reading an unknown screenshot only with consent (`screen_help`), scam verdicts, and web search for questions outside the library.
+- **Cartesia Sonic 3.6:** every line is spoken in the user's language at 0.9x speed for older listeners; audio is cached so repeated lines are instant.
+- **Convex:** the backend for the native iOS app: the task library, anonymous sessions with live counters, a Claude action that may only select a library task id, a Cartesia action with audio cached in file storage, rate limits and a cron that deletes everything after 7 days.
+- **Native iOS app (SwiftUI + ReplayKit + Vision):** a broadcast extension that reads the screen on the device and advances steps automatically, plus a Picture-in-Picture card. Written and unit-tested, but not yet run on a device (see Challenges).
+- **68 automated tests** cover the library, the step detector, every guardrail and the server.
+
+## Responsible design (where it could go wrong, and what we did)
+- **Wrong steps hurt more than no steps.** Instructions come from the checked library, not the model's memory. Code rejects any task id Claude invents, any button label not in the library, and any re-explanation missing the exact on-screen label. Web answers are labeled as such with sources.
+- **Scams.** Lola never asks for passwords, codes or card numbers; any reply that mentions them is replaced. Rule-based red flags set a minimum risk the model can't lower, and advice like "tap the link" or "pay" is stripped. "Someone called me from the bank and told me to…" pauses the session and suggests calling family.
+- **Privacy.** Screenshots are read on the phone and never stored. Screens with password, code or card fields are never read or sent. A screenshot reaches Claude only after the user taps "Yes, look at it." Sessions are anonymous and deleted after 7 days. No screen text or transcripts are logged.
+- **The user stays in charge.** Lola never taps, sends or changes anything. Repeat, Next, I'm lost, Pause and Stop are always one tap or one word away.
 
 ## Challenges we ran into
-iOS doesn't let any app draw over Settings or point at buttons. We switched from "a mascot that
-points" to voice plus a Picture-in-Picture card. Screen sharing must be started by the user through
-Apple's sheet, the extension has a tight memory budget, and a screen's back button shows the
-previous title, which confused our first detector. *(Update with what actually happened on the device.)*
+- iOS doesn't let any app draw over Settings or tap for the user, so "a mascot that points at the button" became voice plus a red ring on the user's own screenshot.
+- Our Mac couldn't install the current Xcode (it needs a newer macOS), so we couldn't run the native iOS app. We rebuilt the experience as a web app the same night, sharing the same library, detector and backend.
+- A screen's back button shows the previous screen's title, which fooled our first step detector; we added position and size rules and test fixtures.
+- Korean grammar changes with the button name (을/를), and Vietnamese "pin" means battery, not PIN. Multilingual safety rules needed language-aware matching.
 
 ## Accomplishments that we're proud of
-*(Fill in honestly after the demo works. Examples: the full flow in Spanish; wrong-turn recovery; real numbers from our small test.)*
+- The full WhatsApp-photos task works end to end in Spanish, by voice, with the red "Toca aquí" ring on a real screenshot.
+- The scam check catches a classic package-delivery scam without any model at all, and Claude can make it stricter but never looser.
+- Four languages, three tasks, two platforms, one checked library.
 
 ## What we learned
-*(Fill in.)*
+Older users need less, not more: one instruction at a time, a pause before help, and a single word to say "I'm lost." And an AI helper for people who can't check its work has to be fenced in by code, not just by a prompt.
 
 ## What's next
-More tasks (camera, microphone, text size, Wi-Fi); Mandarin; label tables for each iOS version
-checked on real devices; a caregiver setup flow; testing with 8 to 10 people per language.
+Test with 8 to 10 people per language and publish the results; run the native iOS app on a device so steps advance automatically; more tasks (camera, microphone, Wi-Fi, notifications); a caregiver setup flow; real authentication before any public launch.
 
-## Built with
-swift, swiftui, replaykit, vision, avkit, node.js, claude, anthropic, cartesia
+---
+
+## Track paragraphs (select these tracks on Devpost)
+
+**Anthropic.** *Named community:* Spanish-, Korean- and Vietnamese-speaking older adults in the US who rely on relatives for iPhone help. *Real problem:* buried, English-only settings and constant scam attempts. *It works:* the full task runs live in Spanish. *Thoughtful use of Claude:* Claude understands messy spoken requests, picks the flow with tool calls, re-explains when someone is lost, reads an unknown screenshot only with consent, and explains scam verdicts. We know where it could go wrong and fenced it with code: it can only choose library tasks and labels, can't lower a scam risk, and can't ask for secrets. 68 tests cover these guardrails.
+
+**Cartesia.** Voice is the product: our users often can't read English, so every instruction, hint, wrong-turn warning and scam verdict is spoken by Cartesia Sonic 3.6 in Spanish, Korean, Vietnamese or English, at 0.9x speed for older listeners. The whole flow works by voice ("otra vez", "estoy perdida", "siguiente"). Keys stay on the server; audio is cached so repeated lines play instantly; the phone's built-in voice is a fallback if the network drops. Accessibility: large type, 60px buttons, typed input for every spoken action, an "only text" mode.
+
+**Best People-First Hack.** Lola is for people shut out of their own phones. The person does every tap; Lola explains one step at a time in their language, circles the exact button on their screenshot, waits before helping, catches wrong turns and scams, and ends by opening a chat with family that they send themselves. Success means finishing without calling someone, not time in the app.
+
+**Microsoft (Built for the Real World / Customer Impact).** *Customer:* older adults who don't speak English at home and their relatives. *Production path:* a versioned task library with a validator, labels per language and iOS version, a script to add real screenshots, privacy-safe metrics, a 7-day retention cron, and an "I'm not sure, call family" fallback (docs/PRODUCTION_PATH.md). *Responsible design:* user does every tap, curated instructions, on-device screen reading, scam guardrails in code. *Measurable usefulness:* the app logs opt-in, counts-only usage (completion, hints, "I'm lost", time) and a script turns it into a results table; we have not run the user study yet and will not claim numbers we don't have. *End to end:* spoken request to finished task, live.
+
+**Notability.** (Only if the team has the shared notebook.) Link it here and describe honestly where it changed the build: the decision log (native app → web app when Xcode wouldn't install), the hand sketch of the red "Toca aquí" ring, and the notes behind the scam check.
