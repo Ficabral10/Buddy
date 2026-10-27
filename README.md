@@ -18,6 +18,8 @@ Built at **Cal Hacks 13.0** by a team of three, for **Spanish-speaking older adu
 
 *(The repo is named `Buddy`, the app's working name during the hackathon.)*
 
+<p align="center"><img src="docs/images/screens.png" width="760" alt="Lola web app: the home screen, a guided step showing which icon to tap, and a scam check flagging a fake package-delivery text"></p>
+
 > The demo task: a grandmother wants to send photos to her grandchildren on WhatsApp, but
 > WhatsApp can't see her photos. Lola talks her through turning on photo access in Spanish.
 > She does every tap. Then she sends the message herself.
