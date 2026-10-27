@@ -5,7 +5,18 @@ language. **You do every tap.** Lola watches your screen (only when you choose t
 notices when you reach the next step, and tells you what to do next, out loud and in a small
 floating card.
 
-Built at Cal Hacks 13.0 for **Spanish-speaking older adults who rely on relatives for iPhone help**.
+Built at **Cal Hacks 13.0** by a team of three, for **Spanish-speaking older adults who rely on relatives for iPhone help**.
+
+![Backend tests](https://github.com/Ficabral10/Buddy/actions/workflows/ci.yml/badge.svg)
+![Swift](https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=nodedotjs&logoColor=white)
+![Convex](https://img.shields.io/badge/Convex-backend-EE342F)
+![Claude](https://img.shields.io/badge/Claude-API-D97757?logo=anthropic&logoColor=white)
+![Cartesia](https://img.shields.io/badge/Cartesia-Sonic_3.6-111111)
+
+**Jump to:** [What it does](#what-it-does) · [How we built it](#how-we-built-it) · [Safety and privacy](#where-this-could-go-wrong-and-what-we-did-about-it) · [Run it](#run-it-on-your-iphone-web-version-no-xcode) · [Repo map](#repo-map)
+
+*(The repo is named `Buddy`, the app's working name during the hackathon.)*
 
 > The demo task: a grandmother wants to send photos to her grandchildren on WhatsApp, but
 > WhatsApp can't see her photos. Lola talks her through turning on photo access in Spanish.
@@ -47,7 +58,7 @@ Both use the same backend, task library, and step detector.
 1. Install Node 20+ (nodejs.org, or `brew install node`).
 2. In Terminal:
    ```bash
-   cd ~/Downloads/buddy
+   git clone https://github.com/Ficabral10/Buddy.git && cd Buddy
    cp .env.example .env && open -e .env    # paste ANTHROPIC_API_KEY, CARTESIA_API_KEY, voice IDs
    cd backend && npm start                 # leave this running
    ```
@@ -114,7 +125,7 @@ Listening uses Apple's on-device speech recognition, not Cartesia: the Ink docs 
 ## Known limitations
 
 - **Not yet verified on a device**: the Picture-in-Picture card during a broadcast, extension memory, the big button that opens Apple's picker, and the Spanish labels. `docs/SPIKE_PLAN.md` lists every check.
-- One task so far (WhatsApp photo access), in Spanish and English.
+- Three curated tasks so far (WhatsApp photo access, WhatsApp camera access, bigger text), in Spanish and English.
 - iOS doesn't let any app draw over Settings or tap for you; Lola points with words and a picture instead.
 - Voice commands work through tap-to-talk and the PiP skip buttons; Lola does not listen all the time.
 - Step detection depends on screen titles; thresholds are first guesses until tested with real frames.
@@ -125,7 +136,7 @@ Listening uses Apple's on-device speech recognition, not Cartesia: the Ink docs 
 ```bash
 cp .env.example .env          # add ANTHROPIC_API_KEY, CARTESIA_API_KEY, voice IDs
 cd backend
-npm test                      # 44 tests: library, agent + vision + scam guardrails, detector fixtures, server
+npm test                      # 62 tests: library, agent + vision + scam guardrails, detector fixtures, server
 npm start                     # http://localhost:8787
 npm run cache-audio           # optional: pre-render the demo's voice lines into the app
 ```
